@@ -2,10 +2,10 @@ import configparser
 import logging
 import os
 import sys
-from types import MethodType
 from logging.handlers import RotatingFileHandler
 from PyQt5 import QtWidgets
 import ui
+#from qplaintexteditlogger import QPlainTextEditLogger
 
 def confparse(filename, cfg):
     '''
@@ -78,19 +78,6 @@ def confparse(filename, cfg):
     except Exception as e:
         confparseExHandle(filename, e)
 
-class QPlainTextEditLogger(logging.Handler):
-    def __init__(self, instance):
-        super().__init__()
-        self.widget = instance
-        self.widget.setReadOnly(True)
-
-    def emit(self, record):
-        msg = self.format(record)
-        self.widget.appendPlainText(msg)
-
-    def write(self, m):
-        pass
-
 def loggingsetup(cfg, logginghandler):
     '''
     Function that initializes the logging service.
@@ -117,6 +104,19 @@ def loggingsetup(cfg, logginghandler):
     # add the handlers to the root logger
     rootLogger.addHandler(fileHandler)
     rootLogger.addHandler(consoleLogger)
+
+class QPlainTextEditLogger(logging.Handler):
+    def __init__(self, instance):
+        super().__init__()
+        self.widget = instance
+        self.widget.setReadOnly(True)
+
+    def emit(self, record):
+        msg = self.format(record)
+        self.widget.appendPlainText(msg)
+
+    def write(self, m):
+        pass
 
 def main():
     # default configuration
