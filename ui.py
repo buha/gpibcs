@@ -1,7 +1,7 @@
 import sys
 import os
 import logging
-from PyQt5 import QtWidgets
+from PyQt5.QtWidgets import (QMainWindow, QMessageBox, QFileDialog, QTableWidgetItem)
 from PyQt5.QtCore import (QThread, QSize, pyqtSignal, pyqtSlot)
 import design
 from types import MethodType
@@ -15,11 +15,11 @@ class GpibConnectThread(QThread):
         self.parent = parent
 
     def showCriticalDialog(self, text):
-        msg = QtWidgets.QMessageBox()
-        msg.setIcon(QtWidgets.QMessageBox.Critical)
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Critical)
         msg.setText(text)
         msg.setWindowTitle("Critical")
-        msg.setStandardButtons(QtWidgets.QMessageBox.Close)
+        msg.setStandardButtons(QMessageBox.Close)
         msg.exec_()
         self.parent.close()
         sys.exit()
@@ -99,7 +99,7 @@ class GpibCommandThread(QThread):
 
         self.finished.emit()
 
-class GPIBTesterWindow(QtWidgets.QMainWindow, design.Ui_MainWindow):
+class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
     def __init__(self, cfg, parent=None):
         super(GPIBTesterWindow, self).__init__(parent)
         self.setupUi(self)
@@ -109,10 +109,21 @@ class GPIBTesterWindow(QtWidgets.QMainWindow, design.Ui_MainWindow):
         self.serialPollButton.clicked.connect(lambda: self.cmdButtonClicked('serial_poll'))
         self.clearButton.clicked.connect(lambda: self.cmdButtonClicked('clear'))
         self.runButton.clicked.connect(self.runButtonClicked)
-        self.sidePanel.setHidden(True)
         self.sidePanelButton.clicked.connect(self.sidePanelButtonClicked)
+        self.saveAsButton.clicked.connect(self.saveAsButtonClicked)
+        self.saveButton.clicked.connect(self.saveButtonClicked)
+        self.sequenceBox.setCurrentIndex(-1)
+        self.sequenceBox.currentIndexChanged.connect(self.sequenceBoxChanged)
+
+
+        # start with a hidden right panel
+        self.sidePanel.setHidden(True)
+
+        # connect to the device
         self.thread = GpibConnectThread(cfg, self)
         self.rm, self.instr = self.thread.start()
+
+        # these are GUI widgets to disable while performing a command
         self.itemsToXable = (self.queryButton, self.writeButton, self.readButton, self.clearButton, self.runButton,
                              self.serialPollButton)
 
@@ -132,6 +143,63 @@ class GPIBTesterWindow(QtWidgets.QMainWindow, design.Ui_MainWindow):
     def critical(self, message):
         logging.critical(message)
 
+    def saveAsButtonClicked(self):
+        # select a file to save to using the dialog
+        fname = QFileDialog.getSaveFileName(None, 'Save As', '.seq', filter='GPIB Sequence (*.seq)')
+        if fname[0] == '':
+            return
+
+        # make sure the file has a .seq suffix
+        #if '.seq' not in fname[0]:
+        #    fname[0] += '.seq'
+
+        # compute a list with all the lines in the sequence table
+        lines = []
+        for i in range(self.tableWidget.rowCount() - 1):
+            lines.append(self.tableWidget.item(i, 0).text())
+
+        # dump the list contents to the selected file
+        with open(fname[0], 'w') as f:
+            for line in lines:
+                f.write("{}\n".format(line))
+
+        # add this file to the combobox
+        self.sequenceBox.blockSignals(True)
+        last = self.sequenceBox.count() - 1
+        self.sequenceBox.insertItem(last, fname[0])
+        self.sequenceBox.setCurrentIndex(last)
+        self.sequenceBox.blockSignals(False)
+
+    def saveButtonClicked(self):
+        pass
+
+    def sequenceBoxChanged(self):
+        current = self.sequenceBox.currentIndex()
+        last = self.sequenceBox.count() - 1
+        if current == last:
+            self.sequenceBox.blockSignals(True)
+            fname = QFileDialog.getOpenFileName(filter='GPIB Sequence (*.seq);;All Files (*)')
+            if fname[0] == '':
+                return
+
+            self.sequenceBox.insertItem(last, fname[0])
+            self.sequenceBox.setCurrentIndex(last)
+            self.sequenceBox.blockSignals(False)
+
+            # delete all rows in sequence table
+            self.tableWidget.setRowCount(0)
+
+            # read selected file to a list
+            with open(fname[0]) as f:
+                lines = f.readlines()
+
+            # add each line to the sequence table
+            for line in lines:
+                i = self.tableWidget.rowCount()
+                self.tableWidget.insertRow(i)
+                item = QTableWidgetItem(line.rstrip('\r\n'))
+                self.tableWidget.setItem(i, 0, item)
+
     def sidePanelButtonClicked(self):
         h = self.sidePanel.isHidden()
         sw = self.size()
@@ -149,21 +217,9 @@ class GPIBTesterWindow(QtWidgets.QMainWindow, design.Ui_MainWindow):
         # t = GpibSequenceThread(self.instr, sequence)
         for row in range(self.tableWidget.rowCount() - 1):
             command = self.tableWidget.item(row, 0).text()
-
-            argument = None
-            try:
-                argument = self.tableWidget.item(row, 1).text()
-            except AttributeError:
-                # it is possible not to have arguments for a command, so ignore
-                pass
-
             if command == 'A':
-                if argument != None:
-                    logging.warning(argument + ' argument given to command ' + command + ' is ignored.')
                 self.thread = GpibCommandThread(self.instr, 'query', command)
             elif command == 'O':
-                if argument != None:
-                    logging.warning(argument + ' argument given to command ' + command + ' is ignored.')
                 self.thread = GpibCommandThread(self.instr, 'query', command)
             elif command == '':
                 continue

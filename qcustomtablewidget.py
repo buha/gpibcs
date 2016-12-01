@@ -19,8 +19,7 @@ class QCustomTableWidget(QtWidgets.QTableWidget):
     def mousePressEvent(self, event):
         # overwrite the mouse press event so that it inserts a new row when clicking on the empty space
         # (provided there is no empty last row already)
-        if self.itemAt(event.pos()) is None and (self.model().index(self.rowCount() - 1, 0).data() != None or
-              self.model().index(self.rowCount() - 1, 1).data() != None):
+        if self.itemAt(event.pos()) is None and (self.model().index(self.rowCount() - 1, 0).data() != None):
             self.clearSelection()
             self.insertRow(self.rowCount())
         QtWidgets.QTableWidget.mousePressEvent(self, event)
