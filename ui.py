@@ -8,8 +8,6 @@ from types import MethodType
 from visa import *
 import telhacks
 
-sys.settrace
-
 class GpibConnectThread(QThread):
     def __init__(self, cfg, parent=None):
         super().__init__()
@@ -68,7 +66,6 @@ class GpibCommandThread(QThread):
 
     def __init__(self, instr, cmd, arg=None):
         super().__init__()
-        #self.started.connect(self.run)
         self.instr = instr
         self.cmd = cmd
         self.arg = arg
@@ -140,17 +137,48 @@ class GPIBTesterWindow(QtWidgets.QMainWindow, design.Ui_MainWindow):
         sw = self.size()
         sp = self.sidePanel.size()
         if h:
-            self.resize(QSize(sw.width() + sp.width() + self.sidePaneLayout.spacing(), sw.height()))
+            self.resize(QSize(sw.width() + sp.width() + self.sidePanelLayout.spacing(), sw.height()))
             self.sidePanel.setHidden(False)
             self.sidePanelButton.setText('<\n<\n<\n')
         else:
-            self.resize(QSize(sw.width() - sp.width() - self.sidePaneLayout.spacing(), sw.height()))
+            self.resize(QSize(sw.width() - sp.width() - self.sidePanelLayout.spacing(), sw.height()))
             self.sidePanel.setHidden(True)
             self.sidePanelButton.setText('>\n>\n>\n')
 
     def runButtonClicked(self):
         # t = GpibSequenceThread(self.instr, sequence)
-        pass
+        for row in range(self.tableWidget.rowCount() - 1):
+            command = self.tableWidget.item(row, 0).text()
+
+            argument = None
+            try:
+                argument = self.tableWidget.item(row, 1).text()
+            except AttributeError:
+                # it is possible not to have arguments for a command, so ignore
+                pass
+
+            if command == 'A':
+                if argument != None:
+                    logging.warning(argument + ' argument given to command ' + command + ' is ignored.')
+                self.thread = GpibCommandThread(self.instr, 'query', command)
+            elif command == 'O':
+                if argument != None:
+                    logging.warning(argument + ' argument given to command ' + command + ' is ignored.')
+                self.thread = GpibCommandThread(self.instr, 'query', command)
+            elif command == '':
+                continue
+            else:
+                logging.error('Unknown (not implemented?) command ' + command)
+                continue
+
+            self.thread.finished.connect(self.onFinished)
+            self.thread.info.connect(self.info)
+            self.thread.warning.connect(self.warning)
+            self.thread.error.connect(self.error)
+            self.thread.critical.connect(self.critical)
+            self.thread.start()
+            self.thread.wait()
+
 
     def cmdButtonClicked(self, cmd):
         for item in self.itemsToXable:
