@@ -8,51 +8,6 @@ from types import MethodType
 from visa import *
 import telhacks
 
-class GpibConnectThread(QThread):
-    def __init__(self, cfg, parent=None):
-        super().__init__()
-        self.cfg = cfg
-        self.parent = parent
-
-    def showCriticalDialog(self, text):
-        msg = QMessageBox()
-        msg.setIcon(QMessageBox.Critical)
-        msg.setText(text)
-        msg.setWindowTitle("Critical")
-        msg.setStandardButtons(QMessageBox.Close)
-        msg.exec_()
-        self.parent.close()
-        sys.exit()
-
-    def start(self):
-        self.sleep(1)
-        rm = None
-        instr = None
-
-        if(os.name == 'posix'):
-            rm = ResourceManager('@py')
-        else:
-            rm = ResourceManager()
-
-        i = self.cfg['gpibDevice']
-        r = None
-        try:
-            r = rm.list_resources()
-        except:
-            logging.critical(i + ' is not connected')
-            self.showCriticalDialog(i + ' is not connected')
-
-        if i not in r:
-            logging.critical(i + ' is not connected')
-            self.showCriticalDialog(i + ' is not connected')
-
-        instr = rm.open_resource(i)
-
-        instr.read_stb = MethodType(telhacks.read_stb_with_previous, instr)
-        instr.timeout = 1000 # in miliseconds
-
-        return rm, instr
-
 class GpibCommandThread(QThread):
 
     finished = pyqtSignal()
@@ -119,29 +74,22 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
         # start with a hidden right panel
         self.sidePanel.setHidden(True)
 
-        # connect to the device
-        self.thread = GpibConnectThread(cfg, self)
-        self.rm, self.instr = self.thread.start()
-
         # these are GUI widgets to disable while performing a command
         self.itemsToXable = (self.queryButton, self.writeButton, self.readButton, self.clearButton, self.runButton,
                              self.serialPollButton)
 
-    @pyqtSlot(str)
-    def info(self, message):
-        logging.info(message)
+        # connect to the device
+        self.rm, self.instr = self.connect(cfg)
+    def save(self, filename):
+        # compute a list with all the lines in the sequence table
+        lines = []
+        for i in range(self.tableWidget.rowCount() - 1):
+            lines.append(self.tableWidget.item(i, 0).text())
 
-    @pyqtSlot(str)
-    def error(self, message):
-        logging.error(message)
-
-    @pyqtSlot(str)
-    def warning(self, message):
-        logging.warning(message)
-
-    @pyqtSlot(str)
-    def critical(self, message):
-        logging.critical(message)
+        # dump the list contents to the selected file
+        with open(filename, 'w') as f:
+            for line in lines:
+                f.write("{}\n".format(line))
 
     def saveAsButtonClicked(self):
         # select a file to save to using the dialog
@@ -149,19 +97,8 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
         if fname[0] == '':
             return
 
-        # make sure the file has a .seq suffix
-        #if '.seq' not in fname[0]:
-        #    fname[0] += '.seq'
-
-        # compute a list with all the lines in the sequence table
-        lines = []
-        for i in range(self.tableWidget.rowCount() - 1):
-            lines.append(self.tableWidget.item(i, 0).text())
-
-        # dump the list contents to the selected file
-        with open(fname[0], 'w') as f:
-            for line in lines:
-                f.write("{}\n".format(line))
+        # save to the selected file
+        self.save(fname[0])
 
         # add this file to the combobox
         self.sequenceBox.blockSignals(True)
@@ -171,7 +108,8 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
         self.sequenceBox.blockSignals(False)
 
     def saveButtonClicked(self):
-        pass
+        filename = self.sequenceBox.currentText()
+        self.save(filename)
 
     def sequenceBoxChanged(self):
         current = self.sequenceBox.currentIndex()
@@ -248,13 +186,68 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
         self.thread.critical.connect(self.critical)
         self.thread.start()
 
-    @pyqtSlot()
-    def onFinished(self):
-        for item in self.itemsToXable:
-            item.setDisabled(False)
-        #logging.info('...')
-        self.thread.quit()
+    def showCriticalDialog(self, text):
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Critical)
+        msg.setText(text)
+        msg.setWindowTitle("Critical")
+        msg.setStandardButtons(QMessageBox.Close)
+        msg.exec_()
+        self.close()
+        sys.exit()
+
+    def connect(self, cfg):
+        rm = None
+        instr = None
+
+        if(os.name == 'posix'):
+            rm = ResourceManager('@py')
+        else:
+            rm = ResourceManager()
+
+        i = cfg['gpibDevice']
+        r = None
+        try:
+            r = rm.list_resources()
+        except:
+            logging.critical(i + ' is not connected')
+            self.showCriticalDialog(i + ' is not connected')
+
+        if i not in r:
+            logging.critical(i + ' is not connected')
+            self.showCriticalDialog(i + ' is not connected')
+
+        instr = rm.open_resource(i)
+
+        instr.read_stb = MethodType(telhacks.read_stb_with_previous, instr)
+        instr.timeout = 1000 # in miliseconds
+
+        return rm, instr
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.instr.close()
         self.rm.close()
+
+
+    @pyqtSlot(str)
+    def info(self, message):
+        logging.info(message)
+
+    @pyqtSlot(str)
+    def error(self, message):
+        logging.error(message)
+
+    @pyqtSlot(str)
+    def warning(self, message):
+        logging.warning(message)
+
+    @pyqtSlot(str)
+    def critical(self, message):
+        logging.critical(message)
+
+    @pyqtSlot()
+    def onFinished(self):
+        for item in self.itemsToXable:
+            item.setDisabled(False)
+        # logging.info('...')
+        self.thread.quit()
