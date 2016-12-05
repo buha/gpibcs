@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>714</width>
-    <height>451</height>
+    <width>607</width>
+    <height>522</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,12 +16,9 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
     <item row="0" column="0">
-     <layout class="QHBoxLayout" name="centralWidgetLayout">
-      <property name="spacing">
-       <number>6</number>
-      </property>
+     <layout class="QHBoxLayout" name="horizontalLayout_3">
       <item>
-       <layout class="QVBoxLayout" name="mainPaneLayout">
+       <layout class="QVBoxLayout" name="verticalLayout_3">
         <item>
          <widget class="QPlainTextEdit" name="canvas">
           <property name="enabled">
@@ -100,66 +97,97 @@
          </widget>
         </item>
         <item>
-         <layout class="QHBoxLayout" name="qwrLayout">
+         <widget class="QLineEdit" name="commandEdit">
+          <property name="styleSheet">
+           <string notr="true">background-color: transparent; selection-background-color: transparent;  border: 1px solid grey;</string>
+          </property>
+          <property name="frame">
+           <bool>false</bool>
+          </property>
+          <property name="placeholderText">
+           <string>Example: F, Ft ...</string>
+          </property>
+          <property name="clearButtonEnabled">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_2">
           <item>
-           <widget class="QLineEdit" name="commandEdit">
-            <property name="styleSheet">
-             <string notr="true">background-color: transparent; selection-background-color: transparent;  border: 1px solid grey;</string>
-            </property>
-            <property name="frame">
-             <bool>false</bool>
-            </property>
-            <property name="placeholderText">
-             <string>Example: F, Ft ...</string>
-            </property>
-            <property name="clearButtonEnabled">
-             <bool>false</bool>
-            </property>
-           </widget>
+           <layout class="QVBoxLayout" name="verticalLayout">
+            <item>
+             <widget class="QPushButton" name="queryButton">
+              <property name="text">
+               <string>ibwrt | ibrd</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="queryResponseButton">
+              <property name="text">
+               <string>ibwrt |ibrsp</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="verticalSpacer">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeType">
+               <enum>QSizePolicy::Minimum</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>72</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
           </item>
           <item>
-           <widget class="QPushButton" name="queryButton">
-            <property name="text">
-             <string>Query</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="writeButton">
-            <property name="text">
-             <string>Write</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="Line" name="line_2">
+           <widget class="Line" name="line">
             <property name="orientation">
              <enum>Qt::Vertical</enum>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="readButton">
-            <property name="text">
-             <string>Read</string>
-            </property>
-           </widget>
+           <layout class="QVBoxLayout" name="verticalLayout_2">
+            <item>
+             <widget class="QPushButton" name="writeButton">
+              <property name="text">
+               <string>ibwrt</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="readButton">
+              <property name="text">
+               <string>ibrd</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="serialPollButton">
+              <property name="text">
+               <string>ibrsp</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="clearButton">
+              <property name="text">
+               <string>ibclr</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
          </layout>
-        </item>
-        <item>
-         <widget class="QPushButton" name="serialPollButton">
-          <property name="text">
-           <string>Serial poll</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="clearButton">
-          <property name="text">
-           <string>Clear (bus)</string>
-          </property>
-         </widget>
         </item>
        </layout>
       </item>
@@ -350,6 +378,7 @@
      </layout>
     </item>
    </layout>
+   <zorder></zorder>
   </widget>
  </widget>
  <customwidgets>

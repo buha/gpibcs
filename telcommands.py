@@ -1,5 +1,6 @@
 from PyQt5.QtCore import (QThread, pyqtSignal)
 from telhacks import *
+from time import sleep
 
 class TELCommandThread(QThread):
 
@@ -12,36 +13,38 @@ class TELCommandThread(QThread):
     error = pyqtSignal(str)
     critical = pyqtSignal(str)
 
-    def __init__(self, instr, cmd, arg=None):
+    def __init__(self, instr, actiontype, command=None):
         super().__init__()
         self.instr = instr
-        self.cmd = cmd
-        self.arg = arg
+        self.actiontype = actiontype
+        self.command = command
 
     def run(self):
-        if self.cmd == 'query':
-            if self.arg == '' or self.arg == None:
-                self.error.emit('Missing input string for query operation.')
-            else:
-                res = self.instr.query(self.arg)
-                self.info.emit('Query \"{0}\" -> \"{1}\"'.format(self.arg, res.rstrip('\r\n')))
+        if self.actiontype == 'query':
+            res = self.instr.query(self.command)
+            self.info.emit('{0} -> {1}'.format(self.command, res.rstrip('\r\n')))
 
-        elif self.cmd == 'write':
-            if self.arg == '' or self.arg == None:
-                self.error.emit('Missing input string for write operation.')
-            else:
-                res = self.instr.write(self.arg)
-                self.info.emit('Write \"{0}\" -> {1}'.format(self.arg, constants.StatusCode(res[1]).name))
+        elif self.actiontype == 'write':
+            res = self.instr.write(self.command)
+            self.info.emit('{0} -> {1}'.format(self.command, constants.StatusCode(res[1]).name))
 
-        elif self.cmd == 'read':
+        elif self.actiontype == 'write_poll':
+            res = self.instr.write(self.command)
+            self.info.emit('{0} -> {1}'.format(self.command, constants.StatusCode(res[1]).name))
+            self.info.emit('Waiting on status byte...')
+            self.instr.wait_for_srq()
+            stb = self.instr.read_stb(previous=True)
+            self.info.emit('STB: 0x{0:X}'.format(stb))
+
+        elif self.actiontype == 'read':
             res = self.instr.read()
             self.info.emit('Read -> {0}'.format(res.rstrip('\r\n')))
 
-        elif self.cmd == 'serial_poll':
+        elif self.actiontype == 'serial_poll':
             res = self.instr.read_stb()
             self.info.emit('Serial poll -> 0x{0:X}'.format(res))
 
-        elif self.cmd == 'clear':
+        elif self.actiontype == 'clear':
             self.instr.clear()
             self.info.emit('Performed bus clear')
 

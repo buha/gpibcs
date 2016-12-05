@@ -7,3 +7,4 @@ GUI GPIB tester
 * pyvisa-py (custom, in my repos)
 * Qt5
 * pyqt5
+* configparser
