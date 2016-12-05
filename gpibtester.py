@@ -78,6 +78,11 @@ def confparse(filename, cfg):
     except Exception as e:
         confparseExHandle(filename, e)
 
+    try:
+        cfg['gpibResponseTimeout'] = config.get('gpib', 'gpibResponseTimeout')
+    except Exception as e:
+        confparseExHandle(filename, e)
+
 def loggingsetup(cfg, logginghandler):
     '''
     Function that initializes the logging service.
@@ -112,7 +117,8 @@ def main():
     cfg['logFileSize'] = 1024000
     cfg['logFileLevel'] = logging.DEBUG
     cfg['logConsoleLevel'] = logging.INFO
-    cfg['logConsoleLevel'] = 'GPIB0::0::INSTR'
+    cfg['gpibDevice'] = 'GPIB0::5::INSTR'
+    cfg['gpibResponseTimeout'] = 30
 
     # find out which .conf file we are using
     filename = os.path.basename(__file__).split('.')[0] + '.conf'

@@ -19,33 +19,58 @@ class TELCommandThread(QThread):
         self.actiontype = actiontype
         self.command = command
 
+    def emitFormatted(self, action, message, status=constants.StatusCode.success):
+        if 'error' in constants.StatusCode(status).name:
+            self.error.emit('({:5}) {} - {}'.format(action, message, constants.StatusCode(status).name))
+        elif 'warning' in constants.StatusCode(status).name:
+            self.warning.emit('({:5}) {} - {}'.format(action, message, constants.StatusCode(status).name))
+        else:
+            self.info.emit('({:5}) {}'.format(action, message))
+
     def run(self):
-        if self.actiontype == 'query':
-            res = self.instr.query(self.command)
-            self.info.emit('{0} -> {1}'.format(self.command, res.rstrip('\r\n')))
+        if self.actiontype == 'ibwrt | ibrd':
+            if self.command == '':
+                self.emitFormatted('ibwrt', 'Command is not specified')
+            else:
+                res = self.instr.write(self.command)
+                self.emitFormatted('ibwrt', self.command, res[1])
+                res = self.instr.read()
+                if res == '':
+                    self.emitFormatted('ibrd', '', constants.StatusCode.error_timeout)
+                else:
+                    self.emitFormatted('ibrd', res.rstrip('\r\n'))
 
-        elif self.actiontype == 'write':
-            res = self.instr.write(self.command)
-            self.info.emit('{0} -> {1}'.format(self.command, constants.StatusCode(res[1]).name))
+        elif self.actiontype == 'ibwrt | ibrsp':
+            if self.command == '':
+                self.emitFormatted('(ibwrt) Command is not specified')
+            else:
+                res = self.instr.write(self.command)
+                self.emitFormatted('ibwrt', self.command, res[1])
+                self.emitFormatted('ibrsp', 'Waiting on status byte...')
+                self.instr.wait_for_srq()
+                stb = self.instr.read_stb(previous=True)
+                self.emitFormatted('ibrsp', '0x{0:X}'.format(stb))
 
-        elif self.actiontype == 'write_poll':
-            res = self.instr.write(self.command)
-            self.info.emit('{0} -> {1}'.format(self.command, constants.StatusCode(res[1]).name))
-            self.info.emit('Waiting on status byte...')
-            self.instr.wait_for_srq()
-            stb = self.instr.read_stb(previous=True)
-            self.info.emit('STB: 0x{0:X}'.format(stb))
+        elif self.actiontype == 'ibwrt':
+            if self.command == '':
+                self.emitFormatted(self.actiontype, 'Command is not specified')
+            else:
+                res = self.instr.write(self.command)
+                self.emitFormatted(self.actiontype, self.command, res[1])
 
-        elif self.actiontype == 'read':
+        elif self.actiontype == 'ibrd':
             res = self.instr.read()
-            self.info.emit('Read -> {0}'.format(res.rstrip('\r\n')))
+            if res == '':
+                self.emitFormatted('ibrd', '', constants.StatusCode.error_timeout)
+            else:
+                self.emitFormatted('ibrd', res.rstrip('\r\n'))
 
-        elif self.actiontype == 'serial_poll':
+        elif self.actiontype == 'ibrsp':
             res = self.instr.read_stb()
-            self.info.emit('Serial poll -> 0x{0:X}'.format(res))
+            self.emitFormatted(self.actiontype, '0x{0:X}'.format(res))
 
-        elif self.actiontype == 'clear':
+        elif self.actiontype == 'ibclr':
             self.instr.clear()
-            self.info.emit('Performed bus clear')
+            self.emitFormatted(self.actiontype, '')
 
         self.finished.emit()

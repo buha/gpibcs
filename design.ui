@@ -67,6 +67,13 @@
             </disabled>
            </palette>
           </property>
+          <property name="font">
+           <font>
+            <family>DejaVu Sans Mono</family>
+            <weight>50</weight>
+            <bold>false</bold>
+           </font>
+          </property>
           <property name="styleSheet">
            <string notr="true"/>
           </property>
@@ -99,7 +106,7 @@
         <item>
          <widget class="QLineEdit" name="commandEdit">
           <property name="styleSheet">
-           <string notr="true">background-color: transparent; selection-background-color: transparent;  border: 1px solid grey;</string>
+           <string notr="true">background-color: transparent; border: 1px solid grey;</string>
           </property>
           <property name="frame">
            <bool>false</bool>
@@ -141,7 +148,7 @@
               <property name="sizeHint" stdset="0">
                <size>
                 <width>20</width>
-                <height>72</height>
+                <height>66</height>
                </size>
               </property>
              </spacer>

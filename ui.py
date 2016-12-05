@@ -13,11 +13,12 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
     def __init__(self, cfg, parent=None):
         super(GPIBTesterWindow, self).__init__(parent)
         self.setupUi(self)
-        self.queryButton.clicked.connect(lambda: self.cmdButtonClicked('query'))
-        self.writeButton.clicked.connect(lambda: self.cmdButtonClicked('write'))
-        self.readButton.clicked.connect(lambda: self.cmdButtonClicked('read'))
-        self.serialPollButton.clicked.connect(lambda: self.cmdButtonClicked('serial_poll'))
-        self.clearButton.clicked.connect(lambda: self.cmdButtonClicked('clear'))
+        self.queryButton.clicked.connect(lambda: self.cmdButtonClicked('ibwrt | ibrd'))
+        self.queryResponseButton.clicked.connect(lambda: self.cmdButtonClicked('ibwrt | ibrsp'))
+        self.writeButton.clicked.connect(lambda: self.cmdButtonClicked('ibwrt'))
+        self.readButton.clicked.connect(lambda: self.cmdButtonClicked('ibrd'))
+        self.serialPollButton.clicked.connect(lambda: self.cmdButtonClicked('ibrsp'))
+        self.clearButton.clicked.connect(lambda: self.cmdButtonClicked('ibclr'))
         self.runButton.clicked.connect(self.runButtonClicked)
         self.sidePanelButton.clicked.connect(self.sidePanelButtonClicked)
         self.saveAsButton.clicked.connect(self.saveAsButtonClicked)
@@ -25,13 +26,15 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
         self.sequenceBox.setCurrentIndex(-1)
         self.sequenceBox.currentIndexChanged.connect(self.sequenceBoxChanged)
 
-
         # start with a hidden right panel
         self.sidePanel.setHidden(True)
 
         # these are GUI widgets to disable while performing a command
-        self.itemsToXable = (self.queryButton, self.writeButton, self.readButton, self.clearButton, self.runButton,
-                             self.serialPollButton)
+        self.itemsToXable = (self.queryButton, self.queryResponseButton, self.writeButton, self.readButton, self.runButton,
+                             self.serialPollButton, self.saveButton, self.saveAsButton, self.sequenceBox, self.clearButton)
+
+        # initialize the thread list
+        self.threadq = []
 
         # connect to the device
         self.rm, self.instr = self.connect(cfg)
@@ -130,6 +133,8 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
             self.sidePanelButton.setText('>\n>\n>\n')
 
     def runButtonClicked(self):
+        # add threads to list, on for each command in the sequence list
+        self.threadq = []
         for row in range(self.tableWidget.rowCount()):
             try:
                 command = self.tableWidget.item(row, 0).text()
@@ -137,23 +142,30 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
                 break
 
             if command[0] in ['A', 'O']:
-                self.thread = TELCommandThread(self.instr, 'query', command)
-            elif command[0] in ['C', 'Q']:
-                self.thread = TELCommandThread(self.instr, 'write_poll', command)
+                self.threadq.append(TELCommandThread(self.instr, 'ibwrt | ibrd', command))
+            elif command[0] in ['C', 'Q', 'U', 'V']:
+                self.threadq.append(TELCommandThread(self.instr, 'ibwrt | ibrsp', command))
             elif command == '':
                 continue
             else:
                 logging.error('Unknown (not implemented?) command ' + command)
                 continue
 
-            self.thread.finished.connect(self.onFinished)
-            self.thread.info.connect(self.info)
-            self.thread.warning.connect(self.warning)
-            self.thread.error.connect(self.error)
-            self.thread.critical.connect(self.critical)
-            self.thread.start()
-            self.thread.wait()
+        # connect the signals/slots for each thread
+        for row in range(self.tableWidget.rowCount()):
+            try:
+                # connect each thread's finished signal to the next's start method, to serialize
+                self.threadq[row].finished.connect(self.threadq[row + 1].start)
+            except IndexError:
+                # last thread should connect to onFinished
+                self.threadq[row].finished.connect(self.onFinished)
 
+            self.threadq[row].info.connect(self.info)
+            self.threadq[row].warning.connect(self.warning)
+            self.threadq[row].error.connect(self.error)
+            self.threadq[row].critical.connect(self.critical)
+
+        self.threadq[0].start()
         self.sequenceBox.setFocus(Qt.MouseFocusReason)
 
     def cmdButtonClicked(self, cmd):
@@ -167,7 +179,6 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
         self.thread.error.connect(self.error)
         self.thread.critical.connect(self.critical)
         self.thread.start()
-        self.thread.wait()
 
     def showCriticalDialog(self, text):
         msg = QMessageBox()
@@ -204,7 +215,7 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
             instr = rm.open_resource(i)
 
             instr.read_stb = MethodType(telhacks.read_stb_with_previous, instr)
-            instr.timeout = 1000 # in miliseconds
+            instr.timeout = 300 # in miliseconds
 
         return rm, instr
 
@@ -231,7 +242,6 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
 
     @pyqtSlot()
     def onFinished(self):
+        self.threadq = []
         for item in self.itemsToXable:
             item.setDisabled(False)
-        # logging.info('...')
-        self.thread.quit()
