@@ -4,7 +4,7 @@ from time import sleep
 
 class TELCommandThread(QThread):
 
-    finished = pyqtSignal(int)
+    finished = pyqtSignal(int, str)
 
     # we can't print to the QPlainTextEdit from within the thread so we pass the messages using signals/slots
     # to the main thread
@@ -13,10 +13,10 @@ class TELCommandThread(QThread):
     error = pyqtSignal(str)
     critical = pyqtSignal(str)
 
-    def __init__(self, instr, actiontype, command=None):
+    def __init__(self, instr, action, command=None):
         super().__init__()
         self.instr = instr
-        self.actiontype = actiontype
+        self.action = action
         self.command = command
 
     def emitFormatted(self, action, message, status=constants.StatusCode.success):
@@ -27,70 +27,37 @@ class TELCommandThread(QThread):
         else:
             self.info.emit('({:5}) {}'.format(action, message))
 
-    def prerun(self):
-        if self.command == 'U':
-            self.savedTimeout = self.instr.timeout
-            self.instr.timeout = 10000
-
-    def postrun(self):
-        if self.command == 'U':
-            self.instr.timeout = self.savedTimeout
-
     def run(self):
         status = constants.StatusCode.success
-        self.prerun()
-        '''
-        if self.actiontype == 'ibwrt | ibrd':
-            if self.command == '':
-                self.emitFormatted('ibwrt', 'Command is not specified')
-            else:
-                res = self.instr.write(self.command)
-                self.emitFormatted('ibwrt', self.command, res[1])
-                res = self.instr.read()
-                if res == '':
-                    self.emitFormatted('ibrd', '', constants.StatusCode.error_timeout)
-                else:
-                    self.emitFormatted('ibrd', res.rstrip('\r\n'))
+        result = None
 
-        elif self.actiontype == 'ibwrt | ibrsp':
+        if self.action == 'ibwrt':
             if self.command == '':
-                self.emitFormatted('(ibwrt) Command is not specified')
+                self.emitFormatted(self.action, 'Command is not specified')
             else:
-                res = self.instr.write(self.command)
-                self.emitFormatted('ibwrt', self.command, res[1])
-                self.emitFormatted('ibrsp', 'Waiting on status byte...')
-                self.instr.wait_for_srq()
-                stb = self.instr.read_stb(previous=True)
-                self.emitFormatted('ibrsp', '0x{0:X}'.format(stb))
-        '''
-        if self.actiontype == 'ibwrt':
-            if self.command == '':
-                self.emitFormatted(self.actiontype, 'Command is not specified')
-            else:
-                res = self.instr.write(self.command)
-                status = res[1]
-                self.emitFormatted(self.actiontype, self.command, status)
+                wr = self.instr.write(self.command)
+                status = wr[1]
+                self.emitFormatted(self.action, self.command, status)
 
-        elif self.actiontype == 'ibrd':
-            res = self.instr.read()
-            if res == '':
+        elif self.action == 'ibrd':
+            result = self.instr.read()
+            if result == '':
                 status = constants.StatusCode.error_timeout
                 self.emitFormatted('ibrd', '', status)
             else:
-                self.emitFormatted('ibrd', res.rstrip('\r\n'))
+                self.emitFormatted('ibrd', result.rstrip('\r\n'))
 
-        elif self.actiontype == 'ibrsp':
-            res = self.instr.read_stb()
-            self.emitFormatted(self.actiontype, '0x{0:X}'.format(res))
+        elif self.action == 'ibrsp':
+            stb = self.instr.read_stb(previous=self.command)
+            result = '0x{0:X}'.format(stb)
+            self.emitFormatted(self.action, result)
 
-        elif self.actiontype == 'ibclr':
+        elif self.action == 'ibclr':
             self.instr.clear()
-            self.emitFormatted(self.actiontype, '')
+            self.emitFormatted(self.action, '')
 
-        elif self.actiontype == 'ibwait':
+        elif self.action == 'ibwait':
             self.emitFormatted('wait', 'Waiting on status byte...')
             self.instr.wait_for_srq()
 
-        self.postrun()
-
-        self.finished.emit(status)
+        self.finished.emit(status, result)

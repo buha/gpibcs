@@ -147,7 +147,7 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
             elif command[0] in ['C', 'Q', 'U', 'V']:
                 self.sequence.put(('ibwrt', command))
                 self.sequence.put(('ibwait', None))
-                self.sequence.put(('ibrsp', None))
+                self.sequence.put(('ibrsp', True))
             elif command == '':
                 pass
             else:
@@ -157,7 +157,11 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
             item.setDisabled(True)
 
         self.sequenceBox.setFocus(Qt.MouseFocusReason)
-        self.onStepFinished(constants.StatusCode.success)
+        self.onStepFinished(constants.StatusCode.success, None)
+
+    def xableItems(self, disable):
+        for item in self.itemsToXable:
+            item.setDisabled(disable)
 
     def cmdButtonClicked(self, text):
         if text == self.queryButton.text():
@@ -166,20 +170,19 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
         elif text == self.queryResponseButton.text():
             self.sequence.put(('ibwrt', self.commandEdit.text()))
             self.sequence.put(('ibwait', None))
-            self.sequence.put(('ibrsp', None))
+            self.sequence.put(('ibrsp', True))
         elif text == self.writeButton.text():
             self.sequence.put(('ibwrt', self.commandEdit.text()))
         elif text == self.readButton.text():
             self.sequence.put(('ibrd', None))
         elif text == self.serialPollButton.text():
-            self.sequence.put(('ibrsp', None))
+            self.sequence.put(('ibrsp', False))
         elif text == self.clearButton.text():
             self.sequence.put(('ibclr', None))
 
-        for item in self.itemsToXable:
-            item.setDisabled(True)
+        self.xableItems(True)
 
-        self.onStepFinished(constants.StatusCode.success)
+        self.onStepFinished(constants.StatusCode.success, None)
 
     def showCriticalDialog(self, text):
         msg = QMessageBox()
@@ -216,7 +219,7 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
             instr = rm.open_resource(i)
 
             instr.read_stb = MethodType(telhacks.read_stb_with_previous, instr)
-            instr.timeout = 300 # in miliseconds
+            instr.timeout = 1000 # in miliseconds
 
         return rm, instr
 
@@ -241,20 +244,51 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
     def critical(self, message):
         logging.critical(message)
 
-    @pyqtSlot(int)
-    def onStepFinished(self, status):
+    def preExecution(self, action, command):
+        if action == 'ibwrt':
+            if command == 'U':
+                self.savedTimeout = self.instr.timeout
+                logging.info('Current timeout is {}, changing to {}'.format(self.savedTimeout, 10000))
+                self.instr.timeout = 10000
+
+    def postExecution(self, action, command, status, result):
+        if action == 'ibwrt':
+            if command == 'U':
+                self.instr.timeout = self.savedTimeout
+                logging.info('Restored timeout to {}'.format(self.instr.timeout))
+            elif command == 'Q':
+                if result == '0x47':
+                    logging.info('Prober state is READY')
+                if result == '0x4B':
+                    logging.info('Prober state is LASTDIE')
+                elif result == '0x62':
+                    logging.info('Prober state is STOP')
+                else:
+                    # I don't know
+                    pass
+
+    @pyqtSlot(int, str)
+    def onStepFinished(self, status, result):
         # if status is not success, abort sequence
         if 'success' not in constants.StatusCode(status).name:
             self.sequence.queue.clear()
 
-        # for our purpose. there can be two types of commands: a write followed by a read or a write followed by
-        # a serial poll
+        # get the next action from sequence
         try:
             seqi = self.sequence.get_nowait()
         except queue.Empty:
-            for item in self.itemsToXable:
-                item.setDisabled(False)
+            self.xableItems(False)
             return
+
+        try:
+            # execute anything that shoud follow after a certain command
+            self.postExecution(self.thread.action, self.thread.command, status, result)
+        except:
+            # it is possible that we haven't yet executed a thread, so self.thread does not exist
+            pass
+
+        # execute anything that should precede a certain command
+        self.preExecution(seqi[0], seqi[1])
 
         # arm and start the thread
         self.thread = TELCommandThread(self.instr, seqi[0], seqi[1])
