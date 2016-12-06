@@ -4,7 +4,7 @@ from time import sleep
 
 class TELCommandThread(QThread):
 
-    finished = pyqtSignal()
+    finished = pyqtSignal(int)
 
     # we can't print to the QPlainTextEdit from within the thread so we pass the messages using signals/slots
     # to the main thread
@@ -27,7 +27,19 @@ class TELCommandThread(QThread):
         else:
             self.info.emit('({:5}) {}'.format(action, message))
 
+    def prerun(self):
+        if self.command == 'U':
+            self.savedTimeout = self.instr.timeout
+            self.instr.timeout = 10000
+
+    def postrun(self):
+        if self.command == 'U':
+            self.instr.timeout = self.savedTimeout
+
     def run(self):
+        status = constants.StatusCode.success
+        self.prerun()
+        '''
         if self.actiontype == 'ibwrt | ibrd':
             if self.command == '':
                 self.emitFormatted('ibwrt', 'Command is not specified')
@@ -50,18 +62,20 @@ class TELCommandThread(QThread):
                 self.instr.wait_for_srq()
                 stb = self.instr.read_stb(previous=True)
                 self.emitFormatted('ibrsp', '0x{0:X}'.format(stb))
-
-        elif self.actiontype == 'ibwrt':
+        '''
+        if self.actiontype == 'ibwrt':
             if self.command == '':
                 self.emitFormatted(self.actiontype, 'Command is not specified')
             else:
                 res = self.instr.write(self.command)
-                self.emitFormatted(self.actiontype, self.command, res[1])
+                status = res[1]
+                self.emitFormatted(self.actiontype, self.command, status)
 
         elif self.actiontype == 'ibrd':
             res = self.instr.read()
             if res == '':
-                self.emitFormatted('ibrd', '', constants.StatusCode.error_timeout)
+                status = constants.StatusCode.error_timeout
+                self.emitFormatted('ibrd', '', status)
             else:
                 self.emitFormatted('ibrd', res.rstrip('\r\n'))
 
@@ -73,4 +87,10 @@ class TELCommandThread(QThread):
             self.instr.clear()
             self.emitFormatted(self.actiontype, '')
 
-        self.finished.emit()
+        elif self.actiontype == 'ibwait':
+            self.emitFormatted('wait', 'Waiting on status byte...')
+            self.instr.wait_for_srq()
+
+        self.postrun()
+
+        self.finished.emit(status)

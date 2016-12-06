@@ -8,17 +8,18 @@ from types import MethodType
 from visa import *
 from telcommands import *
 import telhacks
+import queue
 
 class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
     def __init__(self, cfg, parent=None):
         super(GPIBTesterWindow, self).__init__(parent)
         self.setupUi(self)
-        self.queryButton.clicked.connect(lambda: self.cmdButtonClicked('ibwrt | ibrd'))
-        self.queryResponseButton.clicked.connect(lambda: self.cmdButtonClicked('ibwrt | ibrsp'))
-        self.writeButton.clicked.connect(lambda: self.cmdButtonClicked('ibwrt'))
-        self.readButton.clicked.connect(lambda: self.cmdButtonClicked('ibrd'))
-        self.serialPollButton.clicked.connect(lambda: self.cmdButtonClicked('ibrsp'))
-        self.clearButton.clicked.connect(lambda: self.cmdButtonClicked('ibclr'))
+        self.queryButton.clicked.connect(lambda: self.cmdButtonClicked(self.queryButton.text()))
+        self.queryResponseButton.clicked.connect(lambda: self.cmdButtonClicked(self.queryResponseButton.text()))
+        self.writeButton.clicked.connect(lambda: self.cmdButtonClicked(self.writeButton.text()))
+        self.readButton.clicked.connect(lambda: self.cmdButtonClicked(self.readButton.text()))
+        self.serialPollButton.clicked.connect(lambda: self.cmdButtonClicked(self.serialPollButton.text()))
+        self.clearButton.clicked.connect(lambda: self.cmdButtonClicked(self.clearButton.text()))
         self.runButton.clicked.connect(self.runButtonClicked)
         self.sidePanelButton.clicked.connect(self.sidePanelButtonClicked)
         self.saveAsButton.clicked.connect(self.saveAsButtonClicked)
@@ -33,8 +34,8 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
         self.itemsToXable = (self.queryButton, self.queryResponseButton, self.writeButton, self.readButton, self.runButton,
                              self.serialPollButton, self.saveButton, self.saveAsButton, self.sequenceBox, self.clearButton)
 
-        # initialize the thread list
-        self.threadq = []
+        # initialize the sequence queue
+        self.sequence = queue.Queue()
 
         # connect to the device
         self.rm, self.instr = self.connect(cfg)
@@ -133,52 +134,52 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
             self.sidePanelButton.setText('>\n>\n>\n')
 
     def runButtonClicked(self):
-        # add threads to list, on for each command in the sequence list
-        self.threadq = []
         for row in range(self.tableWidget.rowCount()):
+            # get each command from the table, line by line
             try:
                 command = self.tableWidget.item(row, 0).text()
             except AttributeError:
                 break
 
             if command[0] in ['A', 'O']:
-                self.threadq.append(TELCommandThread(self.instr, 'ibwrt | ibrd', command))
+                self.sequence.put(('ibwrt', command))
+                self.sequence.put(('ibrd', None))
             elif command[0] in ['C', 'Q', 'U', 'V']:
-                self.threadq.append(TELCommandThread(self.instr, 'ibwrt | ibrsp', command))
+                self.sequence.put(('ibwrt', command))
+                self.sequence.put(('ibwait', None))
+                self.sequence.put(('ibrsp', None))
             elif command == '':
-                continue
+                pass
             else:
-                logging.error('Unknown (not implemented?) command ' + command)
-                continue
+                logging.warning('Ignoring unknown (not implemented?) command ' + command)
 
-        # connect the signals/slots for each thread
-        for row in range(self.tableWidget.rowCount()):
-            try:
-                # connect each thread's finished signal to the next's start method, to serialize
-                self.threadq[row].finished.connect(self.threadq[row + 1].start)
-            except IndexError:
-                # last thread should connect to onFinished
-                self.threadq[row].finished.connect(self.onFinished)
-
-            self.threadq[row].info.connect(self.info)
-            self.threadq[row].warning.connect(self.warning)
-            self.threadq[row].error.connect(self.error)
-            self.threadq[row].critical.connect(self.critical)
-
-        self.threadq[0].start()
-        self.sequenceBox.setFocus(Qt.MouseFocusReason)
-
-    def cmdButtonClicked(self, cmd):
         for item in self.itemsToXable:
             item.setDisabled(True)
 
-        self.thread = TELCommandThread(self.instr, cmd, self.commandEdit.text())
-        self.thread.finished.connect(self.onFinished)
-        self.thread.info.connect(self.info)
-        self.thread.warning.connect(self.warning)
-        self.thread.error.connect(self.error)
-        self.thread.critical.connect(self.critical)
-        self.thread.start()
+        self.sequenceBox.setFocus(Qt.MouseFocusReason)
+        self.onStepFinished(constants.StatusCode.success)
+
+    def cmdButtonClicked(self, text):
+        if text == self.queryButton.text():
+            self.sequence.put(('ibwrt', self.commandEdit.text()))
+            self.sequence.put(('ibrd', None))
+        elif text == self.queryResponseButton.text():
+            self.sequence.put(('ibwrt', self.commandEdit.text()))
+            self.sequence.put(('ibwait', None))
+            self.sequence.put(('ibrsp', None))
+        elif text == self.writeButton.text():
+            self.sequence.put(('ibwrt', self.commandEdit.text()))
+        elif text == self.readButton.text():
+            self.sequence.put(('ibrd', None))
+        elif text == self.serialPollButton.text():
+            self.sequence.put(('ibrsp', None))
+        elif text == self.clearButton.text():
+            self.sequence.put(('ibclr', None))
+
+        for item in self.itemsToXable:
+            item.setDisabled(True)
+
+        self.onStepFinished(constants.StatusCode.success)
 
     def showCriticalDialog(self, text):
         msg = QMessageBox()
@@ -240,8 +241,30 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
     def critical(self, message):
         logging.critical(message)
 
+    @pyqtSlot(int)
+    def onStepFinished(self, status):
+        # if status is not success, abort sequence
+        if 'success' not in constants.StatusCode(status).name:
+            self.sequence.queue.clear()
+
+        # for our purpose. there can be two types of commands: a write followed by a read or a write followed by
+        # a serial poll
+        try:
+            seqi = self.sequence.get_nowait()
+        except queue.Empty:
+            for item in self.itemsToXable:
+                item.setDisabled(False)
+            return
+
+        # arm and start the thread
+        self.thread = TELCommandThread(self.instr, seqi[0], seqi[1])
+        self.thread.info.connect(self.info)
+        self.thread.warning.connect(self.warning)
+        self.thread.error.connect(self.error)
+        self.thread.critical.connect(self.critical)
+        self.thread.finished.connect(self.onStepFinished)
+        self.thread.start()
+
     @pyqtSlot()
     def onFinished(self):
-        self.threadq = []
-        for item in self.itemsToXable:
-            item.setDisabled(False)
+        pass
