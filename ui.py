@@ -3,12 +3,14 @@ import os
 import logging
 from PyQt5.QtWidgets import (QMainWindow, QMessageBox, QFileDialog, QTableWidgetItem)
 from PyQt5.QtCore import (Qt, QThread, QSize, pyqtSignal, pyqtSlot)
+from PyQt5.QtGui import QStandardItem
 import design
 from types import MethodType
 from visa import *
 from telcommands import *
 import telhacks
 import queue
+import csv
 
 class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
     def __init__(self, cfg, parent=None):
@@ -40,19 +42,21 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
         # connect to the device
         self.rm, self.instr = self.connect(cfg)
     def save(self, filename):
-        # compute a list with all the lines in the sequence table
-        lines = []
-        for i in range(self.tableWidget.rowCount() - 1):
-            lines.append(self.tableWidget.item(i, 0).text())
-
-        # dump the list contents to the selected file
-        with open(filename, 'w') as f:
-            for line in lines:
-                f.write("{}\n".format(line))
+        with open(filename, "w") as fileOutput:
+            writer = csv.writer(fileOutput)
+            for rowNumber in range(self.tableWidget.model().rowCount()):
+                fields = [
+                    self.tableWidget.model().data(
+                        self.tableWidget.model().index(rowNumber, columnNumber),
+                        Qt.DisplayRole
+                    )
+                    for columnNumber in range(self.tableWidget.model().columnCount())
+                    ]
+                writer.writerow(fields)
 
     def saveAsButtonClicked(self):
         # select a file to save to using the dialog
-        fname = QFileDialog.getSaveFileName(None, 'Save As', '.seq', filter='GPIB Sequence (*.seq)')
+        fname = QFileDialog.getSaveFileName(None, 'Save As', '.csv', filter='Comma separated values file (*.csv)')
         if fname[0] == '':
             return
 
@@ -78,7 +82,7 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
 
         # user wants to load a sequence from a file
         if self.sequenceBox.currentText() == 'Load sequence ...':
-            fname = QFileDialog.getOpenFileName(filter='GPIB Sequence (*.seq);;All Files (*)')[0]
+            fname = QFileDialog.getOpenFileName(filter='Comma separated values file (*.csv);;All Files (*)')[0]
 
             # check if we don't deal with a file already in the list
             repeat = False
@@ -100,20 +104,14 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
 
         # whatever the user picked above, repopulate the table
         try:
-            # read selected file to a list
-            with open(fname) as f:
-                lines = f.readlines()
-            f.close()
-
-            # delete all rows in sequence table
-            self.tableWidget.setRowCount(0)
-
-            # add each line to the sequence table
-            for line in lines:
-                i = self.tableWidget.rowCount()
-                self.tableWidget.insertRow(i) # insert row at end
-                item = QTableWidgetItem(line.rstrip('\r\n'))
-                self.tableWidget.setItem(i, 0, item)
+            with open(fname, "r") as fileInput:
+                self.tableWidget.setRowCount(0)
+                for row in csv.reader(fileInput):
+                    i = self.tableWidget.rowCount()
+                    self.tableWidget.insertRow(i)
+                    for col, field in enumerate(row):
+                        item = QTableWidgetItem(field)
+                        self.tableWidget.setItem(i, col, item)
 
         except FileNotFoundError:
             pass
@@ -135,27 +133,38 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
 
     def runButtonClicked(self):
         for row in range(self.tableWidget.rowCount()):
+            action = None
+            command = None
+            timeout = None
+
             # get each command from the table, line by line
             try:
-                command = self.tableWidget.item(row, 0).text()
+                actions = ['ibwrt', 'ibrd', 'ibwait', 'ibrsp', 'ibclr']
+                action = self.tableWidget.item(row, 0).text()
+                if action not in actions:
+                    raise ValueError
             except AttributeError:
                 break
+            except ValueError:
+                logging.error('Invalid action at line ' + str(row + 1))
+                return
 
-            if command[0] in ['A', 'O']:
-                self.sequence.put(('ibwrt', command))
-                self.sequence.put(('ibrd', None))
-            elif command[0] in ['C', 'Q', 'U', 'V']:
-                self.sequence.put(('ibwrt', command))
-                self.sequence.put(('ibwait', None))
-                self.sequence.put(('ibrsp', True))
-            elif command == '':
+            try:
+                command = self.tableWidget.item(row, 1).text()
+            except AttributeError:
                 pass
-            else:
-                logging.warning('Ignoring unknown (not implemented?) command ' + command)
 
-        for item in self.itemsToXable:
-            item.setDisabled(True)
+            try:
+                timeout = float(self.tableWidget.item(row, 2).text()) * 1000.0  # in milliseconds
+            except ValueError:
+                logging.error('Invalid timeout value at line ' + str(row + 1))
+                return
+            except AttributeError:
+                timeout = None
 
+            self.sequence.put((action, command, timeout))
+
+        self.xableItems(True)
         self.sequenceBox.setFocus(Qt.MouseFocusReason)
         self.onStepFinished(constants.StatusCode.success, None)
 
@@ -165,20 +174,20 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
 
     def cmdButtonClicked(self, text):
         if text == self.queryButton.text():
-            self.sequence.put(('ibwrt', self.commandEdit.text()))
-            self.sequence.put(('ibrd', None))
+            self.sequence.put(('ibwrt', self.commandEdit.text(), None))
+            self.sequence.put(('ibrd', None, None))
         elif text == self.queryResponseButton.text():
             self.sequence.put(('ibwrt', self.commandEdit.text()))
-            self.sequence.put(('ibwait', None))
-            self.sequence.put(('ibrsp', True))
+            self.sequence.put(('ibwait', None, None))
+            self.sequence.put(('ibrsp', True, None))
         elif text == self.writeButton.text():
-            self.sequence.put(('ibwrt', self.commandEdit.text()))
+            self.sequence.put(('ibwrt', self.commandEdit.text(), None))
         elif text == self.readButton.text():
-            self.sequence.put(('ibrd', None))
+            self.sequence.put(('ibrd', None, None))
         elif text == self.serialPollButton.text():
-            self.sequence.put(('ibrsp', False))
+            self.sequence.put(('ibrsp', False, None))
         elif text == self.clearButton.text():
-            self.sequence.put(('ibclr', None))
+            self.sequence.put(('ibclr', None, None))
 
         self.xableItems(True)
 
@@ -280,18 +289,20 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
             self.xableItems(False)
             return
 
+        '''
         try:
             # execute anything that shoud follow after a certain command
             self.postExecution(self.thread.action, self.thread.command, status, result)
         except:
             # it is possible that we haven't yet executed a thread, so self.thread does not exist
             pass
+        '''
 
         # execute anything that should precede a certain command
-        self.preExecution(seqi[0], seqi[1])
+        #self.preExecution(seqi[0], seqi[1])
 
         # arm and start the thread
-        self.thread = TELCommandThread(self.instr, seqi[0], seqi[1])
+        self.thread = TELCommandThread(self.instr, seqi[0], seqi[1], seqi[2])
         self.thread.info.connect(self.info)
         self.thread.warning.connect(self.warning)
         self.thread.error.connect(self.error)

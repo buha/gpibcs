@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>607</width>
-    <height>522</height>
+    <height>496</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -262,7 +262,7 @@
         </property>
         <property name="maximumSize">
          <size>
-          <width>360</width>
+          <width>400</width>
           <height>16777215</height>
          </size>
         </property>
@@ -352,19 +352,32 @@
              <attribute name="horizontalHeaderCascadingSectionResizes">
               <bool>false</bool>
              </attribute>
+             <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
+              <bool>false</bool>
+             </attribute>
              <attribute name="horizontalHeaderStretchLastSection">
               <bool>true</bool>
              </attribute>
              <attribute name="verticalHeaderVisible">
-              <bool>false</bool>
+              <bool>true</bool>
              </attribute>
              <row/>
              <column>
               <property name="text">
-               <string>Sequence</string>
+               <string>action</string>
               </property>
               <property name="textAlignment">
                <set>AlignCenter</set>
+              </property>
+             </column>
+             <column>
+              <property name="text">
+               <string>command</string>
+              </property>
+             </column>
+             <column>
+              <property name="text">
+               <string>timeout</string>
               </property>
              </column>
             </widget>
