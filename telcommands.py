@@ -13,11 +13,13 @@ class TELCommandThread(QThread):
     error = pyqtSignal(str)
     critical = pyqtSignal(str)
 
-    def __init__(self, instr, action, command=None, timeout=None):
+    commands = ['ibwrt', 'ibrd', 'ibrsp', 'ibclr', 'waitSRQ', 'pause']
+
+    def __init__(self, instr, command, data=None, timeout=None):
         super().__init__()
         self.instr = instr
-        self.action = action
         self.command = command
+        self.data = data
         self.timeout = timeout
 
     def emitFormatted(self, action, message, status=constants.StatusCode.success):
@@ -41,33 +43,46 @@ class TELCommandThread(QThread):
             self.instr.timeout = self.timeout
 
         # perform actions
-        if self.action == 'ibwrt':
-            if self.command == '':
-                self.emitFormatted(self.action, 'Command is not specified')
+        if self.command == 'ibwrt':
+            if self.data == '':
+                self.emitFormatted(self.command, 'Command is not specified')
             else:
-                wr = self.instr.write(self.command)
+                wr = self.instr.write(self.data)
                 status = wr[1]
-                self.emitFormatted(self.action, self.command, status)
+                self.emitFormatted(self.command, self.data, status)
 
-        elif self.action == 'ibrd':
-            result = self.instr.read()
+        elif self.command == 'ibrd':
+            try:
+                result = self.instr.read()
+            except Exception as e:
+                result = ''
+
             if result == '':
                 status = constants.StatusCode.error_timeout
                 self.emitFormatted('ibrd', '', status)
             else:
                 self.emitFormatted('ibrd', result.rstrip('\r\n'))
 
-        elif self.action == 'ibrsp':
-            stb = self.instr.read_stb(previous=self.command)
+        elif self.command == 'ibrsp':
+            stb = self.instr.read_stb(previous=self.data)
             result = '0x{0:X}'.format(stb)
-            self.emitFormatted(self.action, result)
+            self.emitFormatted(self.command, result)
 
-        elif self.action == 'ibclr':
+        elif self.command == 'ibclr':
             self.instr.clear()
-            self.emitFormatted(self.action, '')
+            self.emitFormatted(self.command, '')
 
-        elif self.action == 'ibwait':
-            self.emitFormatted('ibwait', 'Waiting on status byte...')
+        elif self.command == 'waitSRQ':
+            self.emitFormatted('waitSRQ', 'Waiting on status byte...')
             self.instr.wait_for_srq()
+
+        elif self.command == 'pause':
+            try:
+                pause = float(self.data)
+                self.emitFormatted('pause', 'Pausing execution for {}s...'.format(self.data))
+                time.sleep(pause)
+            except:
+                status = constants.StatusCode.error_invalid_parameter
+                self.emitFormatted('pause', 'Missing value for pause command', status)
 
         self.finished.emit(status, result)

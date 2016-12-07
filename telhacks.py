@@ -1,4 +1,5 @@
 import time
+import os
 from visa import *
 from pyvisa.resources.gpib import _GPIBMixin
 from pyvisa.resources.messagebased import MessageBasedResource
@@ -11,8 +12,10 @@ def read_stb_with_previous(self, previous=False):
     :param previous: If previous=True, the value of stb from the latest call with previous=False is retrieved.
     :return: status byte
     """
-
-    value, retcode = self.visalib.read_stb(self.session, previous)
+    if(os.name == 'posix'):
+        value, retcode = self.visalib.read_stb(self.session, previous)
+    else:
+        value, retcode = self.visalib.read_stb(self.session)
     return value
 
 @Resource.register(constants.InterfaceType.gpib, 'INSTR')

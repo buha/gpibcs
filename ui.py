@@ -42,7 +42,7 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
         # connect to the device
         self.rm, self.instr = self.connect(cfg)
     def save(self, filename):
-        with open(filename, "w") as fileOutput:
+        with open(filename, "w", newline='') as fileOutput:
             writer = csv.writer(fileOutput)
             for rowNumber in range(self.tableWidget.model().rowCount()):
                 fields = [
@@ -133,36 +133,37 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
 
     def runButtonClicked(self):
         for row in range(self.tableWidget.rowCount()):
-            action = None
             command = None
+            data = None
             timeout = None
 
             # get each command from the table, line by line
             try:
-                actions = ['ibwrt', 'ibrd', 'ibwait', 'ibrsp', 'ibclr']
-                action = self.tableWidget.item(row, 0).text()
-                if action not in actions:
-                    raise ValueError
-            except AttributeError:
-                break
+                command = self.tableWidget.item(row, 0).text()
+                if command not in TELCommandThread.commands:
+                    if command == '':
+                        break
+                    else:
+                        raise ValueError
             except ValueError:
                 logging.error('Invalid action at line ' + str(row + 1))
                 return
+            except AttributeError:
+                break
 
             try:
-                command = self.tableWidget.item(row, 1).text()
+                data = self.tableWidget.item(row, 1).text()
             except AttributeError:
                 pass
 
             try:
-                timeout = float(self.tableWidget.item(row, 2).text()) * 1000.0  # in milliseconds
+                if timeout != None:
+                    timeout = float(self.tableWidget.item(row, 2).text()) * 1000.0  # in milliseconds
             except ValueError:
                 logging.error('Invalid timeout value at line ' + str(row + 1))
                 return
-            except AttributeError:
-                timeout = None
 
-            self.sequence.put((action, command, timeout))
+            self.sequence.put((command, data, timeout))
 
         self.xableItems(True)
         self.sequenceBox.setFocus(Qt.MouseFocusReason)
@@ -177,8 +178,8 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
             self.sequence.put(('ibwrt', self.commandEdit.text(), None))
             self.sequence.put(('ibrd', None, None))
         elif text == self.queryResponseButton.text():
-            self.sequence.put(('ibwrt', self.commandEdit.text()))
-            self.sequence.put(('ibwait', None, None))
+            self.sequence.put(('ibwrt', self.commandEdit.text(), None))
+            self.sequence.put(('waitSRQ', None, None))
             self.sequence.put(('ibrsp', True, None))
         elif text == self.writeButton.text():
             self.sequence.put(('ibwrt', self.commandEdit.text(), None))
