@@ -18,6 +18,7 @@ def read_stb_with_previous(self, previous=False):
         value, retcode = self.visalib.read_stb(self.session)
     return value
 
+#if os.name == 'posix':
 @Resource.register(constants.InterfaceType.gpib, 'INSTR')
 class GPIBInstrument(_GPIBMixin, MessageBasedResource):
     """Communicates with to devices of type GPIB::<primary address>[::INSTR]
@@ -59,4 +60,4 @@ class GPIBInstrument(_GPIBMixin, MessageBasedResource):
             if rsp.timed_out == False:
                 break
 
-        self.discard_events(constants.VI_EVENT_SERVICE_REQ, constants.VI_QUEUE)
+        #self.discard_events(constants.VI_EVENT_SERVICE_REQ, constants.VI_QUEUE)

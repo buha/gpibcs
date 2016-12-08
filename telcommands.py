@@ -47,7 +47,10 @@ class TELCommandThread(QThread):
             if self.data == '':
                 self.emitFormatted(self.command, 'Command is not specified')
             else:
-                wr = self.instr.write(self.data)
+                try:
+                    wr = self.instr.write(self.data)
+                except VisaIOError as e:
+                    wr = (0, e.error_code)
                 status = wr[1]
                 self.emitFormatted(self.command, self.data, status)
 
