@@ -40,7 +40,7 @@ class TELCommandThread(QThread):
 
         # set the timeout if it was specified before performing any action
         if self.timeout != None:
-            self.instr.timeout = self.timeout
+            self.instr.timeout = self.timeoutf
 
         # perform actions
         if self.command == 'ibwrt':
@@ -55,16 +55,13 @@ class TELCommandThread(QThread):
                 self.emitFormatted(self.command, self.data, status)
 
         elif self.command == 'ibrd':
+            result = ''
             try:
                 result = self.instr.read()
-            except Exception as e:
-                result = ''
-
-            if result == '':
-                status = constants.StatusCode.error_timeout
-                self.emitFormatted('ibrd', '', status)
-            else:
                 self.emitFormatted('ibrd', result.rstrip('\r\n'))
+            except VisaIOError as e:
+                status = e.error_code
+                self.emitFormatted('ibrd', '', status)
 
         elif self.command == 'ibrsp':
             stb = self.instr.read_stb(previous=self.data)
@@ -77,7 +74,12 @@ class TELCommandThread(QThread):
 
         elif self.command == 'waitSRQ':
             self.emitFormatted('waitSRQ', 'Waiting on status byte...')
-            self.instr.wait_for_srq()
+            try:
+                self.instr.wait_for_srq()
+            except VisaIOError as e:
+                status = e.error_code
+                self.emitFormatted('ibrd', '', status)
+
 
         elif self.command == 'pause':
             try:

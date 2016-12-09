@@ -123,7 +123,7 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
         sw = self.size()
         sp = self.sidePanel.size()
         if h:
-            self.resize(QSize(sw.width() + sp.width() + self.sidePanelLayout.spacing(), sw.height()))
+            self.resize(QSize(sw.width() + sp.width() +  self.sidePanelLayout.spacing(), sw.height()))
             self.sidePanel.setHidden(False)
             self.sidePanelButton.setText('<\n<\n<\n')
         else:
@@ -156,9 +156,15 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
             except AttributeError:
                 pass
 
+            if (command == 'waitSRQ'):
+                try:
+                    int(data, 16) # this is just to validate the input
+                except ValueError:
+                    logging.error('Invalid waitSRQ parameter {} value at line {}'.format(data, row + 1))
+                    return
+
             try:
-                if timeout != None:
-                    timeout = float(self.tableWidget.item(row, 2).text()) * 1000.0  # in milliseconds
+                timeout = float(self.tableWidget.item(row, 2).text()) * 1000.0  # in milliseconds
             except ValueError:
                 logging.error('Invalid timeout value at line ' + str(row + 1))
                 return
