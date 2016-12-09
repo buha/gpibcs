@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(607, 496)
+        MainWindow.resize(619, 496)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.gridLayout = QtWidgets.QGridLayout(self.centralwidget)
@@ -189,7 +189,7 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "GPIB Tester"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "GPIB Tester Simulator"))
         self.commandEdit.setPlaceholderText(_translate("MainWindow", "Example: F, Ft ..."))
         self.queryButton.setText(_translate("MainWindow", "ibwrt | ibrd"))
         self.queryResponseButton.setText(_translate("MainWindow", "ibwrt |ibrsp"))
@@ -207,11 +207,27 @@ class Ui_MainWindow(object):
         self.saveAsButton.setToolTip(_translate("MainWindow", "Save As"))
         self.saveAsButton.setText(_translate("MainWindow", "..."))
         item = self.tableWidget.horizontalHeaderItem(0)
-        item.setText(_translate("MainWindow", "action"))
-        item = self.tableWidget.horizontalHeaderItem(1)
         item.setText(_translate("MainWindow", "command"))
+        item.setToolTip(_translate("MainWindow", "List of available commands:\n"
+"ibwrt\n"
+"ibrd\n"
+"ibrsp\n"
+"ibclr\n"
+"waitSRQ\n"
+"pause"))
+        item = self.tableWidget.horizontalHeaderItem(1)
+        item.setText(_translate("MainWindow", "data"))
+        item.setToolTip(_translate("MainWindow", "The data field meaning depends on the command:\n"
+"(ibwrt) command string\n"
+"(ibrd) ignored\n"
+"(ibrsp) ignored\n"
+"(ibclr) ignored\n"
+"(waitSRQ) expected SRQ hexadecimal value preceeded by 0x\n"
+"(pause) duration in second"))
         item = self.tableWidget.horizontalHeaderItem(2)
         item.setText(_translate("MainWindow", "timeout"))
+        item.setToolTip(_translate("MainWindow", "If timeout is specified, the GPIB timeout is modified before executing the command.\n"
+"Measured in seconds."))
         self.runButton.setText(_translate("MainWindow", "Run"))
 
 from qcustomtablewidget import QCustomTableWidget

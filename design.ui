@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>607</width>
+    <width>619</width>
     <height>496</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>GPIB Tester</string>
+   <string>GPIB Tester Simulator</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
@@ -365,7 +365,16 @@
              <row/>
              <column>
               <property name="text">
-               <string>action</string>
+               <string>command</string>
+              </property>
+              <property name="toolTip">
+               <string>List of available commands:
+ibwrt
+ibrd
+ibrsp
+ibclr
+waitSRQ
+pause</string>
               </property>
               <property name="textAlignment">
                <set>AlignCenter</set>
@@ -373,12 +382,25 @@
              </column>
              <column>
               <property name="text">
-               <string>command</string>
+               <string>data</string>
+              </property>
+              <property name="toolTip">
+               <string>The data field meaning depends on the command:
+(ibwrt) command string
+(ibrd) ignored
+(ibrsp) ignored
+(ibclr) ignored
+(waitSRQ) expected SRQ hexadecimal value preceeded by 0x
+(pause) duration in second</string>
               </property>
              </column>
              <column>
               <property name="text">
                <string>timeout</string>
+              </property>
+              <property name="toolTip">
+               <string>If timeout is specified, the GPIB timeout is modified before executing the command.
+Measured in seconds.</string>
               </property>
              </column>
             </widget>
