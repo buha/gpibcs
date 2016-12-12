@@ -40,7 +40,7 @@ class TELCommandThread(QThread):
 
         # set the timeout if it was specified before performing any action
         if self.timeout != None:
-            self.instr.timeout = self.timeoutf
+            self.instr.timeout = self.timeout
 
         # perform actions
         if self.command == 'ibwrt':
@@ -79,7 +79,6 @@ class TELCommandThread(QThread):
             except VisaIOError as e:
                 status = e.error_code
                 self.emitFormatted('ibrd', '', status)
-
 
         elif self.command == 'pause':
             try:

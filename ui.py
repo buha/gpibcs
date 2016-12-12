@@ -137,37 +137,34 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
             data = None
             timeout = None
 
-            # get each command from the table, line by line
+            # try to get the command field
             try:
                 command = self.tableWidget.item(row, 0).text()
                 if command not in TELCommandThread.commands:
                     if command == '':
-                        break
+                        break # skip the line
                     else:
                         raise ValueError
             except ValueError:
                 logging.error('Invalid action at line ' + str(row + 1))
                 return
             except AttributeError:
-                break
+                break # skip the line
 
+            # try to get the data field
             try:
                 data = self.tableWidget.item(row, 1).text()
             except AttributeError:
-                pass
+                pass # the data must not necessarily contain something
 
-            if (command == 'waitSRQ'):
-                try:
-                    int(data, 16) # this is just to validate the input
-                except ValueError:
-                    logging.error('Invalid waitSRQ parameter {} value at line {}'.format(data, row + 1))
-                    return
-
+            # try to get the timeout field
             try:
                 timeout = float(self.tableWidget.item(row, 2).text()) * 1000.0  # in milliseconds
             except ValueError:
                 logging.error('Invalid timeout value at line ' + str(row + 1))
                 return
+            except AttributeError:
+                pass # the timeout must not necessarily contain something
 
             self.sequence.put((command, data, timeout))
 
