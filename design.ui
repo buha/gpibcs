@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>619</width>
+    <width>647</width>
     <height>496</height>
    </rect>
   </property>
@@ -409,6 +409,13 @@ Measured in seconds.</string>
             <widget class="QPushButton" name="runButton">
              <property name="text">
               <string>Run</string>
+             </property>
+             <property name="icon">
+              <iconset>
+               <normaloff>icons/gtk-media-play-ltr.svg</normaloff>icons/gtk-media-play-ltr.svg</iconset>
+             </property>
+             <property name="checkable">
+              <bool>false</bool>
              </property>
             </widget>
            </item>

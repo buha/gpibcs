@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(619, 496)
+        MainWindow.resize(647, 496)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.gridLayout = QtWidgets.QGridLayout(self.centralwidget)
@@ -177,6 +177,10 @@ class Ui_MainWindow(object):
         self.tableWidget.verticalHeader().setVisible(True)
         self.sidePanelLayout.addWidget(self.tableWidget)
         self.runButton = QtWidgets.QPushButton(self.sidePanel)
+        icon3 = QtGui.QIcon()
+        icon3.addPixmap(QtGui.QPixmap("icons/gtk-media-play-ltr.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.runButton.setIcon(icon3)
+        self.runButton.setCheckable(False)
         self.runButton.setObjectName("runButton")
         self.sidePanelLayout.addWidget(self.runButton)
         self.gridLayout_2.addLayout(self.sidePanelLayout, 0, 0, 1, 1)

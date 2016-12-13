@@ -1,12 +1,11 @@
 import sys
 import os
 import logging
-from PyQt5.QtWidgets import (QMainWindow, QMessageBox, QFileDialog, QTableWidgetItem)
-from PyQt5.QtCore import (Qt, QThread, QSize, pyqtSignal, pyqtSlot)
-from PyQt5.QtGui import QStandardItem
+from PyQt5.QtWidgets import QMainWindow, QMessageBox, QFileDialog, QTableWidgetItem
+from PyQt5.QtCore import Qt, QSize, pyqtSlot, pyqtSignal
+from PyQt5.QtGui import QIcon
 import design
 from types import MethodType
-from visa import *
 from telcommands import *
 import telhacks
 import queue
@@ -33,7 +32,7 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
         self.sidePanel.setHidden(True)
 
         # these are GUI widgets to disable while performing a command
-        self.itemsToXable = (self.queryButton, self.queryResponseButton, self.writeButton, self.readButton, self.runButton,
+        self.itemsToXable = (self.queryButton, self.queryResponseButton, self.writeButton, self.readButton,
                              self.serialPollButton, self.saveButton, self.saveAsButton, self.sequenceBox, self.clearButton)
 
         # initialize the sequence queue
@@ -132,49 +131,64 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
             self.sidePanelButton.setText('>\n>\n>\n')
 
     def runButtonClicked(self):
-        for row in range(self.tableWidget.rowCount()):
-            command = None
-            data = None
-            timeout = None
+        if self.runButton.text() == 'Stop':
+            self.thread.wait()
+            while self.sequence.qsize() != 0:
+                dummy = self.sequence.get_nowait()
+            self.xableItems(False)
+        else:
+            for row in range(self.tableWidget.rowCount()):
+                command = None
+                data = None
+                timeout = None
 
-            # try to get the command field
-            try:
-                command = self.tableWidget.item(row, 0).text()
-                if command not in TELCommandThread.commands:
-                    if command == '':
-                        break # skip the line
-                    else:
-                        raise ValueError
-            except ValueError:
-                logging.error('Invalid action at line ' + str(row + 1))
-                return
-            except AttributeError:
-                break # skip the line
+                # try to get the command field
+                try:
+                    command = self.tableWidget.item(row, 0).text()
+                    if command not in TELCommandThread.commands:
+                        if command == '':
+                            break # skip the line
+                        else:
+                            raise ValueError
+                except ValueError:
+                    logging.error('Invalid command {} at line {}'.format(command, str(row + 1)))
+                    return
+                except AttributeError:
+                    break # skip the line
 
-            # try to get the data field
-            try:
-                data = self.tableWidget.item(row, 1).text()
-            except AttributeError:
-                pass # the data must not necessarily contain something
+                # try to get the data field
+                try:
+                    data = self.tableWidget.item(row, 1).text()
+                except AttributeError:
+                    pass # the data must not necessarily contain something
 
-            # try to get the timeout field
-            try:
-                timeout = float(self.tableWidget.item(row, 2).text()) * 1000.0  # in milliseconds
-            except ValueError:
-                logging.error('Invalid timeout value at line ' + str(row + 1))
-                return
-            except AttributeError:
-                pass # the timeout must not necessarily contain something
+                # try to get the timeout field
+                try:
+                    timeout = self.tableWidget.item(row, 2).text()
+                    timeout = float(timeout) * 1000 # in milliseconds
+                except ValueError:
+                    if timeout != '':
+                        logging.warning('Ignoring invalid timeout value at line ' + str(row + 1))
+                    timeout = None
+                except AttributeError:
+                    timeout = None
 
-            self.sequence.put((command, data, timeout))
+                self.sequence.put((command, data, timeout))
 
-        self.xableItems(True)
-        self.sequenceBox.setFocus(Qt.MouseFocusReason)
-        self.onStepFinished(constants.StatusCode.success, None)
+            self.xableItems(True)
+            self.sequenceBox.setFocus(Qt.MouseFocusReason)
+            self.onStepFinished(constants.StatusCode.success, None)
 
     def xableItems(self, disable):
         for item in self.itemsToXable:
             item.setDisabled(disable)
+        if disable == True:
+            self.runButton.setIcon(QIcon('icons/gtk-media-stop.svg'))
+            self.runButton.setText('Stop')
+        else:
+            self.runButton.setIcon(QIcon('icons/gtk-media-play-ltr.svg'))
+            self.runButton.setText('Run')
+            self.runButton.setChecked(False)
 
     def cmdButtonClicked(self, text):
         if text == self.queryButton.text():
@@ -239,7 +253,6 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.instr.close()
         self.rm.close()
-
 
     @pyqtSlot(str)
     def info(self, message):
