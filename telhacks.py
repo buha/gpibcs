@@ -4,7 +4,6 @@ from visa import *
 from pyvisa.resources.gpib import _GPIBMixin
 from pyvisa.resources.messagebased import MessageBasedResource
 
-
 def read_stb_with_previous(self, previous=False):
     """
     Read service request status byte.

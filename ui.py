@@ -12,6 +12,9 @@ import queue
 import csv
 
 class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
+    '''
+    The main window.
+    '''
     def __init__(self, cfg, parent=None):
         super(GPIBTesterWindow, self).__init__(parent)
         self.setupUi(self)
@@ -40,7 +43,13 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
 
         # connect to the device
         self.rm, self.instr = self.connect(cfg)
+
     def save(self, filename):
+        '''
+        Save the tablewidget content into a .csv
+        :param filename: path to target file
+        :return:
+        '''
         with open(filename, "w", newline='') as fileOutput:
             writer = csv.writer(fileOutput)
             for rowNumber in range(self.tableWidget.model().rowCount()):
@@ -54,6 +63,11 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
                 writer.writerow(fields)
 
     def saveAsButtonClicked(self):
+        '''
+        Open a file selector dialog for the user to pick a file, then use this file to save the tablewidget content
+        into it.
+        :return:
+        '''
         # select a file to save to using the dialog
         fname = QFileDialog.getSaveFileName(None, 'Save As', '.csv', filter='Comma separated values file (*.csv)')
         if fname[0] == '':
@@ -70,10 +84,21 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
         self.sequenceBox.blockSignals(False)
 
     def saveButtonClicked(self):
+        '''
+        Handler for the save button click.
+        Pick the currently selected file and save the table contents into it.
+        If no file is selected, bring the Save As dialog instead.
+        '''
         filename = self.sequenceBox.currentText()
-        self.save(filename)
+        if filename != '':
+            self.save(filename)
+        else:
+            self.saveAsButtonClicked()
 
     def sequenceBoxChanged(self):
+        '''
+        Handler for the sequence file selection dialog.
+        '''
         self.sequenceBox.blockSignals(True)
 
         current = self.sequenceBox.currentIndex()
@@ -94,8 +119,8 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
             if fname == '':
                 self.sequenceBox.setCurrentIndex(-1)
             elif repeat == False:
-                self.sequenceBox.insertItem(last, fname)
-                self.sequenceBox.setCurrentIndex(last)
+                    self.sequenceBox.insertItem(last, fname)
+                    self.sequenceBox.setCurrentIndex(last)
 
         # user selected another sequence file already in the list
         else:
@@ -118,6 +143,9 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
         self.sequenceBox.blockSignals(False)
 
     def sidePanelButtonClicked(self):
+        '''
+        Handler for the button that exposes the advanced right panel with the sequence table.
+        '''
         h = self.sidePanel.isHidden()
         sw = self.size()
         sp = self.sidePanel.size()
@@ -131,6 +159,11 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
             self.sidePanelButton.setText('>\n>\n>\n')
 
     def runButtonClicked(self):
+        '''
+        Handler for the Run button click. A thread queue is created here which contains information to execute the
+        commands in the sequence table. The first thread is also launched here.
+        :return:
+        '''
         if self.runButton.text() == 'Stop':
             self.thread.wait()
             while self.sequence.qsize() != 0:
@@ -180,6 +213,9 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
             self.onStepFinished(constants.StatusCode.success, None)
 
     def xableItems(self, disable):
+        '''
+        Enable/Disable GUI items that should be enabled/disabled when a sequence is executing/finished.
+        '''
         for item in self.itemsToXable:
             item.setDisabled(disable)
         if disable == True:
@@ -270,13 +306,6 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
     def critical(self, message):
         logging.critical(message)
 
-    def preExecution(self, action, command):
-        if action == 'ibwrt':
-            if command == 'U':
-                self.savedTimeout = self.instr.timeout
-                logging.info('Current timeout is {}, changing to {}'.format(self.savedTimeout, 10000))
-                self.instr.timeout = 10000
-
     def postExecution(self, action, command, status, result):
         if action == 'ibwrt':
             if command == 'U':
@@ -305,18 +334,6 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
         except queue.Empty:
             self.xableItems(False)
             return
-
-        '''
-        try:
-            # execute anything that shoud follow after a certain command
-            self.postExecution(self.thread.action, self.thread.command, status, result)
-        except:
-            # it is possible that we haven't yet executed a thread, so self.thread does not exist
-            pass
-        '''
-
-        # execute anything that should precede a certain command
-        #self.preExecution(seqi[0], seqi[1])
 
         # arm and start the thread
         self.thread = TELCommandThread(self.instr, seqi[0], seqi[1], seqi[2])
