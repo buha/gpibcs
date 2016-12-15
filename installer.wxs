@@ -1,0 +1,71 @@
+<?xml version="1.0"?>
+<?define ProductVersion = "0.1.1"?>
+<?define ProductUpgradeCode = "12345678-1234-1234-1234-111111111111"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+   <Product Id="*" UpgradeCode="$(var.ProductUpgradeCode)" 
+            Name="TEL Semi-Auto GPIB Tester" Version="$(var.ProductVersion)" Manufacturer="Tokyo Electron Europe" Language="1033">
+      <Package InstallerVersion="200" Compressed="yes" Comments="Windows Installer Package"/>
+      <Media Id="1" Cabinet="product.cab" EmbedCab="yes"/>
+      <Icon Id="ProductIcon" SourceFile="icons\gpibtester.ico"/>
+      <Property Id="ARPPRODUCTICON" Value="ProductIcon"/>
+      <Property Id="ARPURLINFOABOUT" Value="http://www.tel.com"/>
+      <Property Id="ARPNOREPAIR" Value="1"/>
+      <Property Id="ARPNOMODIFY" Value="1"/>
+      <Upgrade Id="$(var.ProductUpgradeCode)">
+         <UpgradeVersion Minimum="$(var.ProductVersion)" OnlyDetect="yes" Property="NEWERVERSIONDETECTED"/>
+         <UpgradeVersion Minimum="0.0.0" Maximum="$(var.ProductVersion)" IncludeMinimum="yes" IncludeMaximum="no" 
+                         Property="OLDERVERSIONBEINGUPGRADED"/>	  
+      </Upgrade>
+      <Condition Message="A newer version of this software is already installed.">NOT NEWERVERSIONDETECTED</Condition>
+
+      <Directory Id="TARGETDIR" Name="SourceDir">
+         <Directory Id="ProgramFilesFolder">
+            <Directory Id="INSTALLDIR" Name="TEL Semi-Auto GPIB Tester">
+               <Component Id="ApplicationFiles" Guid="12345678-1234-1234-1234-222222222221">
+                  <File Id="ApplicationExecutable" Source="dist\gpibtester.exe"/>
+                  <File Id="ApplicationFile1" Source="gpibtester.conf"/>
+               </Component>
+               <Directory Id="IconsFolder" Name="icons">
+                  <Component Id="ComponentFiles" Guid="12345678-1234-1234-1234-222222222222">
+                      <File Id="ApplicationIcon1" Source="icons\document-open.svg"/>
+                      <File Id="ApplicationIcon2" Source="icons\document-save.svg"/>
+                      <File Id="ApplicationIcon3" Source="icons\document-save-as.svg"/>
+                      <File Id="ApplicationIcon4" Source="icons\gtk-media-play-ltr.svg"/>
+                      <File Id="ApplicationIcon5" Source="icons\gtk-media-stop.svg"/>
+                      <File Id="ApplicationIcon6" Source="icons\gpibtester.svg"/>
+                   </Component>
+                </Directory>
+                <Directory Id="SequencesFolder" Name="sequence">
+                  <Component Id="SequenceFiles" Guid="12345678-1234-1234-1234-222222222223">
+                      <File Id="Sequence1" Source="sequence\bin1_pass.csv"/>
+                      <File Id="Sequence2" Source="sequence\bin7_fail.csv"/>
+                   </Component>
+                </Directory>
+            </Directory>
+         </Directory>
+
+         <Directory Id="ProgramMenuFolder">
+            <Directory Id="ProgramMenuSubfolder" Name="TEL Semi-Auto GPIB Tester">
+               <Component Id="ApplicationShortcuts" Guid="12345678-1234-1234-1234-333333333333">
+                  <Shortcut Id="ApplicationShortcut1" Name="GPIB Tester" Description="A semi-automatic graphical GPIB tester for TEL probers" 
+                            Target="[INSTALLDIR]gpibtester.exe" WorkingDirectory="INSTALLDIR"/>
+                  <RegistryValue Root="HKCU" Key="Software\TEL\Semi-Auto GPIB Tester" 
+                            Name="installed" Type="integer" Value="1" KeyPath="yes"/>
+                  <RemoveFolder Id="ProgramMenuSubfolder" On="uninstall"/>
+               </Component>
+            </Directory>
+         </Directory>
+      </Directory>
+
+      <InstallExecuteSequence>
+         <RemoveExistingProducts After="InstallValidate"/>
+      </InstallExecuteSequence>
+
+      <Feature Id="DefaultFeature" Level="1">
+         <ComponentRef Id="ApplicationFiles"/>
+         <ComponentRef Id="ComponentFiles"/>
+         <ComponentRef Id="SequenceFiles"/>
+         <ComponentRef Id="ApplicationShortcuts"/>		 
+      </Feature>
+   </Product>
+</Wix>

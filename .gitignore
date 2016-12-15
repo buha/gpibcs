@@ -1,3 +1,10 @@
+build
+dist
 __pycache__
 .idea
 *.log*
+*.wixobj
+*.wixpdb
+*.spec
+*.exe
+*.msi

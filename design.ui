@@ -13,6 +13,10 @@
   <property name="windowTitle">
    <string>GPIB Tester Simulator</string>
   </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>icons/gpibtester.svg</normaloff>icons/gpibtester.svg</iconset>
+  </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
     <item row="0" column="0">
