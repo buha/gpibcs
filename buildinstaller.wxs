@@ -20,7 +20,7 @@
 
       <Directory Id="TARGETDIR" Name="SourceDir">
          <Directory Id="ProgramFilesFolder">
-            <Directory Id="INSTALLDIR" Name="TEL Semi-Auto GPIB Tester">
+            <Directory Id="INSTALLDIR" Name="TEL GPIB Tester Simulator">
                <Component Id="ApplicationFiles" Guid="12345678-1234-1234-1234-222222222221">
                   <File Id="ApplicationExecutable" Source="dist\gpibtester.exe"/>
                   <File Id="ApplicationFile1" Source="gpibtester.conf"/>
@@ -45,11 +45,11 @@
          </Directory>
 
          <Directory Id="ProgramMenuFolder">
-            <Directory Id="ProgramMenuSubfolder" Name="TEL Semi-Auto GPIB Tester">
+            <Directory Id="ProgramMenuSubfolder" Name="TEL GPIB Tester Simulator">
                <Component Id="ApplicationShortcuts" Guid="12345678-1234-1234-1234-333333333333">
                   <Shortcut Id="ApplicationShortcut1" Name="GPIB Tester" Description="A semi-automatic graphical GPIB tester for TEL probers" 
                             Target="[INSTALLDIR]gpibtester.exe" WorkingDirectory="INSTALLDIR"/>
-                  <RegistryValue Root="HKCU" Key="Software\TEL\Semi-Auto GPIB Tester" 
+                  <RegistryValue Root="HKCU" Key="Software\TEL\GPIB Tester Simulator" 
                             Name="installed" Type="integer" Value="1" KeyPath="yes"/>
                   <RemoveFolder Id="ProgramMenuSubfolder" On="uninstall"/>
                </Component>
