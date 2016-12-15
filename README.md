@@ -20,15 +20,15 @@ Source code dialect is Python 3 and the dependencies are as listed below. For py
 * `configparser`
 
 ## Linux
-* `pyvisa-py` (custom)[https://github.com/buha/pyvisa-py]
+* `pyvisa-py` [(custom)](https://github.com/buha/pyvisa-py)
 * `linux-gpib` (see below installation instructions)
 
 ## Windows
 * `pyinstaller` (Optional; only used to build the Windows standalone executable)
-* (WiX toolset)[http://wixtoolset.org/] (Optional; only used to build the Windows installer)
+* [WiX toolset](http://wixtoolset.org/) (Optional; only used to build the Windows installer)
 
 
-# GPIB installation guide
+# `linux-gpib` installation guide
 Performed on Ubuntu 16.10 with linux kernel 4.8.0-30-generic.
 
 1. `wget https://netix.dl.sourceforge.net/project/linux-gpib/linux-gpib%20for%203.x.x%20and%202.6.x%20kernels/4.0.3/linux-gpib-4.0.3.tar.gz`
