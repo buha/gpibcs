@@ -1,4 +1,4 @@
 candle buildinstaller.wxs
 light buildinstaller.wixobj
-move /y buildinstaller.msi dist\gpibtester.msi
+move /y buildinstaller.msi dist\gpibcs.msi
 @pause

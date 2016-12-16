@@ -272,12 +272,18 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
             try:
                 r = rm.list_resources()
             except:
-                logging.critical(i + ' is not connected')
-                self.showCriticalDialog(i + ' is not connected')
+                s = i + ' is not connected.'
+                logging.critical(s)
+                self.showCriticalDialog(s)
 
             if i not in r:
-                logging.critical(i + ' is not connected')
-                self.showCriticalDialog(i + ' is not connected')
+                s = i + ' is not connected.'
+                for i in r:
+                    if 'GPIB' in i:
+                        s += '\nDetected device ' + i 
+                logging.critical(s)
+                self.showCriticalDialog(s)
+                
 
             instr = rm.open_resource(i)
 

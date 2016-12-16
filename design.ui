@@ -11,11 +11,11 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>GPIB Tester Simulator</string>
+   <string>GPIB Command Sequencer</string>
   </property>
   <property name="windowIcon">
    <iconset>
-    <normaloff>icons/gpibtester.svg</normaloff>icons/gpibtester.svg</iconset>
+    <normaloff>icons/gpibcs.ico</normaloff>icons/gpibcs.ico</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
@@ -137,7 +137,7 @@
             <item>
              <widget class="QPushButton" name="queryResponseButton">
               <property name="text">
-               <string>ibwrt |ibrsp</string>
+               <string>ibwrt | ibrsp</string>
               </property>
              </widget>
             </item>
