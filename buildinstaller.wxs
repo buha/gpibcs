@@ -20,7 +20,7 @@
 
       <Directory Id="TARGETDIR" Name="SourceDir">
          <Directory Id="ProgramFilesFolder">
-            <Directory Id="INSTALLDIR" Name="TEL GPIB Command Sequencer">
+            <Directory Id="INSTALLDIR" Name="GPIBCS">
                <Component Id="ApplicationFiles" Guid="12345678-1234-1234-1234-222222222221">
                   <File Id="ApplicationExecutable" Source="dist\gpibcs.exe"/>
                   <File Id="ApplicationFile1" Source="gpibcs.conf"/>
@@ -32,7 +32,7 @@
                       <File Id="ApplicationIcon3" Source="icons\document-save-as.svg"/>
                       <File Id="ApplicationIcon4" Source="icons\gtk-media-play-ltr.svg"/>
                       <File Id="ApplicationIcon5" Source="icons\gtk-media-stop.svg"/>
-                      <File Id="ApplicationIcon6" Source="icons\gpibcs.svg"/>
+                      <File Id="ApplicationIcon6" Source="icons\gpibcs.ico"/>
                    </Component>
                 </Directory>
                 <Directory Id="SequencesFolder" Name="sequence">
