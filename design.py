@@ -13,7 +13,7 @@ class Ui_MainWindow(object):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(647, 496)
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap("icons/gpibtester.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap("icons/gpibcs.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         MainWindow.setWindowIcon(icon)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
@@ -196,7 +196,7 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "GPIB Tester Simulator"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "GPIB Command Sequencer"))
         self.commandEdit.setPlaceholderText(_translate("MainWindow", "Example: F, Ft ..."))
         self.queryButton.setText(_translate("MainWindow", "ibwrt | ibrd"))
         self.queryResponseButton.setText(_translate("MainWindow", "ibwrt |ibrsp"))

@@ -1,2 +1,2 @@
-pyinstaller --onefile -w --icon=icons\gpibtester.ico gpibtester.py
+pyinstaller --onefile -w --icon=icons\gpibcs.ico gpibcs.py
 pause

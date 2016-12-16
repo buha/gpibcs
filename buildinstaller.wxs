@@ -3,10 +3,10 @@
 <?define ProductUpgradeCode = "12345678-1234-1234-1234-111111111111"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
    <Product Id="*" UpgradeCode="$(var.ProductUpgradeCode)" 
-            Name="TEL Semi-Auto GPIB Tester" Version="$(var.ProductVersion)" Manufacturer="Tokyo Electron Europe" Language="1033">
+            Name="TEL GPIB Command Sequencer" Version="$(var.ProductVersion)" Manufacturer="Tokyo Electron Europe" Language="1033">
       <Package InstallerVersion="200" Compressed="yes" Comments="Windows Installer Package"/>
       <Media Id="1" Cabinet="product.cab" EmbedCab="yes"/>
-      <Icon Id="ProductIcon" SourceFile="icons\gpibtester.ico"/>
+      <Icon Id="ProductIcon" SourceFile="icons\gpibcs.ico"/>
       <Property Id="ARPPRODUCTICON" Value="ProductIcon"/>
       <Property Id="ARPURLINFOABOUT" Value="http://www.tel.com"/>
       <Property Id="ARPNOREPAIR" Value="1"/>
@@ -20,10 +20,10 @@
 
       <Directory Id="TARGETDIR" Name="SourceDir">
          <Directory Id="ProgramFilesFolder">
-            <Directory Id="INSTALLDIR" Name="TEL GPIB Tester Simulator">
+            <Directory Id="INSTALLDIR" Name="TEL GPIB Command Sequencer">
                <Component Id="ApplicationFiles" Guid="12345678-1234-1234-1234-222222222221">
-                  <File Id="ApplicationExecutable" Source="dist\gpibtester.exe"/>
-                  <File Id="ApplicationFile1" Source="gpibtester.conf"/>
+                  <File Id="ApplicationExecutable" Source="dist\gpibcs.exe"/>
+                  <File Id="ApplicationFile1" Source="gpibcs.conf"/>
                </Component>
                <Directory Id="IconsFolder" Name="icons">
                   <Component Id="ComponentFiles" Guid="12345678-1234-1234-1234-222222222222">
@@ -32,7 +32,7 @@
                       <File Id="ApplicationIcon3" Source="icons\document-save-as.svg"/>
                       <File Id="ApplicationIcon4" Source="icons\gtk-media-play-ltr.svg"/>
                       <File Id="ApplicationIcon5" Source="icons\gtk-media-stop.svg"/>
-                      <File Id="ApplicationIcon6" Source="icons\gpibtester.svg"/>
+                      <File Id="ApplicationIcon6" Source="icons\gpibcs.svg"/>
                    </Component>
                 </Directory>
                 <Directory Id="SequencesFolder" Name="sequence">
@@ -45,11 +45,11 @@
          </Directory>
 
          <Directory Id="ProgramMenuFolder">
-            <Directory Id="ProgramMenuSubfolder" Name="TEL GPIB Tester Simulator">
+            <Directory Id="ProgramMenuSubfolder" Name="TEL GPIB Command Sequencer">
                <Component Id="ApplicationShortcuts" Guid="12345678-1234-1234-1234-333333333333">
-                  <Shortcut Id="ApplicationShortcut1" Name="GPIB Tester" Description="A semi-automatic graphical GPIB tester for TEL probers" 
-                            Target="[INSTALLDIR]gpibtester.exe" WorkingDirectory="INSTALLDIR"/>
-                  <RegistryValue Root="HKCU" Key="Software\TEL\GPIB Tester Simulator" 
+                  <Shortcut Id="ApplicationShortcut1" Name="GPIBCS" Description="A semi-automatic graphical GPIB command sequencer for TEL probers" 
+                            Target="[INSTALLDIR]gpibcs.exe" WorkingDirectory="INSTALLDIR"/>
+                  <RegistryValue Root="HKCU" Key="Software\TEL\GPIB Command Sequencer" 
                             Name="installed" Type="integer" Value="1" KeyPath="yes"/>
                   <RemoveFolder Id="ProgramMenuSubfolder" On="uninstall"/>
                </Component>
