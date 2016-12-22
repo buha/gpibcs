@@ -192,6 +192,8 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
                             raise ValueError
                 except ValueError:
                     logging.error('Invalid command {} at line {}'.format(command, str(row + 1)))
+                    while self.sequence.qsize() != 0: self.sequence.get_nowait()
+                    self.repeatBox.setValue(1)
                     return
                 except AttributeError:
                     break # skip the line
@@ -243,7 +245,7 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
             self.sequence.put(('ibrd', None, None))
         elif text == self.queryResponseButton.text():
             self.sequence.put(('ibwrt', self.commandEdit.text(), None))
-            self.sequence.put(('waitSRQ', None, None))
+            self.sequence.put(('waitsrq', None, None))
             self.sequence.put(('ibrsp', True, None))
         elif text == self.writeButton.text():
             self.sequence.put(('ibwrt', self.commandEdit.text(), None))
