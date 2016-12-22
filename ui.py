@@ -36,10 +36,14 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
 
         # these are GUI widgets to disable while performing a command
         self.itemsToXable = (self.queryButton, self.queryResponseButton, self.writeButton, self.readButton,
-                             self.serialPollButton, self.saveButton, self.saveAsButton, self.sequenceBox, self.clearButton)
+                             self.serialPollButton, self.saveButton, self.saveAsButton, self.sequenceBox,
+                             self.clearButton, self.repeatBox)
 
         # initialize the sequence queue
         self.sequence = queue.Queue()
+        self.sequenceCopy = queue.Queue()
+        self.runRequestActive = False
+        self.stopRequestActive = False
 
         # connect to the device
         self.rm, self.instr = self.connect(cfg)
@@ -168,7 +172,10 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
             self.thread.wait()
             while self.sequence.qsize() != 0:
                 dummy = self.sequence.get_nowait()
+            self.repeatBox.setValue(1)
             self.xableItems(False)
+            self.stopRequestActive = True
+            return
         else:
             for row in range(self.tableWidget.rowCount()):
                 command = None
@@ -208,9 +215,13 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
 
                 self.sequence.put((command, data, timeout))
 
+            while self.sequenceCopy.qsize() != 0: self.sequenceCopy.get_nowait()
+            for i in self.sequence.queue: self.sequenceCopy.put(i) # make a copy in case we need to repeat
             self.xableItems(True)
             self.sequenceBox.setFocus(Qt.MouseFocusReason)
             self.onStepFinished(constants.StatusCode.success, None)
+            self.runRequestActive = True
+            logging.info('{:-^50}'.format(' Sequence start '))
 
     def xableItems(self, disable):
         '''
@@ -330,16 +341,36 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
 
     @pyqtSlot(int, str)
     def onStepFinished(self, status, result):
-        # if status is not success, abort sequence
+
+        # if status is not success, clear sequence in order to abort
         if 'success' not in constants.StatusCode(status).name:
             self.sequence.queue.clear()
+            self.sequenceCopy.queue.clear()
+            self.xableItems(False)
+            self.repeatBox.setValue(1)
+            if self.runRequestActive:
+                self.runRequestActive = False
+                logging.error('{:-^50}'.format("Sequence aborted"))
+            return
 
         # get the next action from sequence
         try:
             seqi = self.sequence.get_nowait()
         except queue.Empty:
-            self.xableItems(False)
-            return
+            if self.repeatBox.value() > 1:
+                for i in self.sequenceCopy.queue: self.sequence.put(i)
+                seqi = self.sequence.get_nowait()
+                self.repeatBox.setValue(self.repeatBox.value() - 1)
+            else:
+                self.xableItems(False)
+                if self.runRequestActive:
+                    self.runRequestActive = False
+                    if self.stopRequestActive:
+                        self.stopRequestActive = False
+                        logging.info('{:-^50}'.format(' Sequence stopped by user '))
+                    else:
+                        logging.info('{:-^50}'.format(' Sequence end '))
+                return
 
         # arm and start the thread
         self.thread = TELCommandThread(self.instr, seqi[0], seqi[1], seqi[2])

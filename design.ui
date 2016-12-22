@@ -73,7 +73,7 @@
           </property>
           <property name="font">
            <font>
-            <family>DejaVu Sans Mono</family>
+            <family>Courier New</family>
             <weight>50</weight>
             <bold>false</bold>
            </font>

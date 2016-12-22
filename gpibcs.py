@@ -94,7 +94,7 @@ def loggingsetup(cfg, logginghandler):
     rootLogger.setLevel(cfg['logFileLevel'])
     fileHandler = RotatingFileHandler(cfg['logFileName'], maxBytes=cfg['logFileSize'], backupCount=5)
     fileHandler.setLevel(cfg['logFileLevel'])
-    fileFormatter = logging.Formatter('%(asctime)s.%(msecs)03d %(levelname)-8s %(message)s', datefmt='%d/%m %H:%M:%S')
+    fileFormatter = logging.Formatter('%(asctime)s.%(msecs)03d %(levelname)-8s %(message)s', datefmt='%Y/%d/%m %H:%M:%S')
     fileHandler.setFormatter(fileFormatter)
 
     # define a Handler which writes INFO messages or higher to the sys.stderr
@@ -102,7 +102,7 @@ def loggingsetup(cfg, logginghandler):
     # set the console logger level
     consoleLogger.setLevel(cfg['logConsoleLevel'])
     # set a simpler format
-    consoleFormatter = logging.Formatter('%(asctime)s  %(levelname)-8s %(message)s', datefmt='%H:%M:%S')
+    consoleFormatter = logging.Formatter('%(asctime)s.%(msecs)03d  %(levelname)-8s %(message)s', datefmt='%H:%M:%S')
     # tell the handler to use this format
     consoleLogger.setFormatter(consoleFormatter)
 

@@ -38,7 +38,7 @@ class Ui_MainWindow(object):
         palette.setBrush(QtGui.QPalette.Disabled, QtGui.QPalette.Light, brush)
         self.canvas.setPalette(palette)
         font = QtGui.QFont()
-        font.setFamily("DejaVu Sans Mono")
+        font.setFamily("Courier New")
         font.setBold(False)
         font.setWeight(50)
         self.canvas.setFont(font)
