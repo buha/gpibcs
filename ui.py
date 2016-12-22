@@ -350,7 +350,7 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
             self.repeatBox.setValue(1)
             if self.runRequestActive:
                 self.runRequestActive = False
-                logging.error('{:-^50}'.format("Sequence aborted"))
+                logging.error('{:-^50}'.format(' Sequence aborted '))
             return
 
         # get the next action from sequence

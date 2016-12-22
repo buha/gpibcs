@@ -40,6 +40,8 @@ class GPIBInstrument(_GPIBMixin, MessageBasedResource):
         """
         self.enable_event(constants.VI_EVENT_SERVICE_REQ, constants.VI_QUEUE)
 
+        timeout = self.timeout
+
         if timeout and not (0 <= timeout <= 4294967295):
             raise ValueError("timeout value is invalid")
 
