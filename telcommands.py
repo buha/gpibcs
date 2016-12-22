@@ -13,7 +13,7 @@ class TELCommandThread(QThread):
     error = pyqtSignal(str)
     critical = pyqtSignal(str)
 
-    commands = ['ibwrt', 'ibrd', 'ibrsp', 'ibclr', 'waitSRQ', 'pause']
+    commands = ['ibwrt', 'ibrd', 'ibrsp', 'ibclr', 'waitsrq', 'pause']
 
     def __init__(self, instr, command, data=None, timeout=None):
         super().__init__()
@@ -72,8 +72,8 @@ class TELCommandThread(QThread):
             self.instr.clear()
             self.emitFormatted(self.command, '')
 
-        elif self.command == 'waitSRQ':
-            self.emitFormatted('waitSRQ', 'Waiting on status byte...')
+        elif self.command == 'waitsrq':
+            self.emitFormatted('waitsrq', 'Waiting on status byte...')
             try:
                 self.instr.wait_for_srq()
             except VisaIOError as e:

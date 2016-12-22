@@ -184,7 +184,7 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
 
                 # try to get the command field
                 try:
-                    command = self.tableWidget.item(row, 0).text()
+                    command = self.tableWidget.item(row, 0).text().lower()
                     if command not in TELCommandThread.commands:
                         if command == '':
                             break # skip the line
