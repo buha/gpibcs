@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>647</width>
+    <width>652</width>
     <height>496</height>
    </rect>
   </property>
@@ -280,7 +280,7 @@
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout">
              <item>
-              <widget class="QComboBox" name="sequenceBox">
+              <widget class="QSequenceBox" name="sequenceBox">
                <item>
                 <property name="text">
                  <string>Load sequence ...</string>
@@ -410,18 +410,51 @@ Measured in seconds.</string>
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="runButton">
-             <property name="text">
-              <string>Run</string>
-             </property>
-             <property name="icon">
-              <iconset>
-               <normaloff>icons/gtk-media-play-ltr.svg</normaloff>icons/gtk-media-play-ltr.svg</iconset>
-             </property>
-             <property name="checkable">
-              <bool>false</bool>
-             </property>
-            </widget>
+            <layout class="QHBoxLayout" name="horizontalLayout_4">
+             <item>
+              <widget class="QPushButton" name="runButton">
+               <property name="text">
+                <string>Run</string>
+               </property>
+               <property name="icon">
+                <iconset>
+                 <normaloff>icons/gtk-media-play-ltr.svg</normaloff>icons/gtk-media-play-ltr.svg</iconset>
+               </property>
+               <property name="checkable">
+                <bool>false</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="repeatLabel">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="text">
+                <string>X</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QSpinBox" name="repeatBox">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="minimum">
+                <number>1</number>
+               </property>
+               <property name="maximum">
+                <number>100</number>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </item>
           </layout>
          </item>
@@ -440,6 +473,11 @@ Measured in seconds.</string>
    <class>QCustomTableWidget</class>
    <extends>QTableWidget</extends>
    <header>qcustomtablewidget.h</header>
+  </customwidget>
+  <customwidget>
+   <class>QSequenceBox</class>
+   <extends>QComboBox</extends>
+   <header>qsequencebox.h</header>
   </customwidget>
  </customwidgets>
  <resources/>
