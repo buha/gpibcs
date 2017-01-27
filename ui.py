@@ -220,7 +220,6 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
             while self.sequenceCopy.qsize() != 0: self.sequenceCopy.get_nowait()
             for i in self.sequence.queue: self.sequenceCopy.put(i) # make a copy in case we need to repeat
             self.xableItems(True)
-            self.sequenceBox.setFocus(Qt.MouseFocusReason)
             self.onStepFinished(constants.StatusCode.success, None)
             self.runRequestActive = True
             logging.info('{:-^50}'.format(' Sequence start '))
@@ -231,6 +230,7 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
         '''
         for item in self.itemsToXable:
             item.setDisabled(disable)
+        
         if disable == True:
             self.runButton.setIcon(QIcon('icons/gtk-media-stop.svg'))
             self.runButton.setText('Stop')
@@ -238,6 +238,8 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
             self.runButton.setIcon(QIcon('icons/gtk-media-play-ltr.svg'))
             self.runButton.setText('Run')
             self.runButton.setChecked(False)
+
+        self.sequenceBox.setFocus(Qt.MouseFocusReason)
 
     def cmdButtonClicked(self, text):
         if text == self.queryButton.text():
