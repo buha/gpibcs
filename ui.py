@@ -187,7 +187,7 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
                     command = self.tableWidget.item(row, 0).text().lower()
                     if command not in TELCommandThread.commands:
                         if command == '':
-                            break # skip the line
+                            continue # skip the line
                         else:
                             raise ValueError
                 except ValueError:
@@ -196,7 +196,7 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
                     self.repeatBox.setValue(1)
                     return
                 except AttributeError:
-                    break # skip the line
+                    continue # skip the line
 
                 # try to get the data field
                 try:
