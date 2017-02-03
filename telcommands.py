@@ -76,10 +76,13 @@ class TELCommandThread(QThread):
             self.emitFormatted('waitsrq', 'Waiting on status byte...')
             try:
                 self.instr.wait_for_srq()
+                stb = self.instr.read_stb(previous=True)
+                result = '0x{0:X}'.format(stb)
+                self.emitFormatted('ibrsp', result)
             except VisaIOError as e:
                 status = e.error_code
-                self.emitFormatted('ibrd', '', status)
-
+                self.emitFormatted('waitsrq', '', status)
+            
         elif self.command == 'pause':
             try:
                 pause = float(self.data)
