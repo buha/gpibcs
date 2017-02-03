@@ -303,7 +303,7 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
             instr = rm.open_resource(i)
 
             instr.read_stb = MethodType(telhacks.read_stb_with_previous, instr)
-            instr.timeout = 1000 # in miliseconds
+            instr.timeout = float(cfg['gpibResponseTimeout']) * 1000 # in milliseconds
 
         return rm, instr
 
