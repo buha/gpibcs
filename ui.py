@@ -257,7 +257,14 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
         elif text == self.serialPollButton.text():
             self.sequence.put(('ibrsp', False, None))
         elif text == self.clearButton.text():
-            self.sequence.put(('ibclr', None, None))
+            confirmation_message = "This will restart the GPIB task on the prober. Are you sure?"
+            reply = QMessageBox.question(self, 'ibclr',
+                                         confirmation_message, QMessageBox.Yes, QMessageBox.No)
+            if reply == QMessageBox.Yes:
+                self.sequence.put(('ibclr', None, None))
+            else:
+                pass
+
 
         self.xableItems(True)
 
