@@ -93,6 +93,7 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
         Pick the currently selected file and save the table contents into it.
         If no file is selected, bring the Save As dialog instead.
         '''
+        self.saveButton.setFocus(Qt.MouseFocusReason) # this is needed de-focus any cell currently being edited
         filename = self.sequenceBox.currentText()
         if filename != '':
             self.save(filename)
