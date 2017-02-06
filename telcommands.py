@@ -40,7 +40,7 @@ class TELCommandThread(QThread):
 
         # set the timeout if it was specified before performing any action
         if self.timeout != None:
-            self.instr.timeout = self.timeout
+            self.instr.timeout = self.timeout - self.timeout / 100.0
 
         # perform actions
         if self.command == 'ibwrt':
