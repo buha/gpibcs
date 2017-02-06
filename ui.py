@@ -1,7 +1,7 @@
 import sys
 import os
 import logging
-from PyQt5.QtWidgets import QMainWindow, QMessageBox, QFileDialog, QTableWidgetItem
+from PyQt5.QtWidgets import QMainWindow, QMessageBox, QFileDialog
 from PyQt5.QtCore import Qt, QSize, pyqtSlot, pyqtSignal
 from PyQt5.QtGui import QIcon
 import design
@@ -9,7 +9,6 @@ from types import MethodType
 from telcommands import *
 import telhacks
 import queue
-import csv
 
 class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
     '''
@@ -48,24 +47,6 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
         # connect to the device
         self.rm, self.instr = self.connect(cfg)
 
-    def save(self, filename):
-        '''
-        Save the tablewidget content into a .csv
-        :param filename: path to target file
-        :return:
-        '''
-        with open(filename, "w", newline='') as fileOutput:
-            writer = csv.writer(fileOutput)
-            for rowNumber in range(self.tableWidget.model().rowCount()):
-                fields = [
-                    self.tableWidget.model().data(
-                        self.tableWidget.model().index(rowNumber, columnNumber),
-                        Qt.DisplayRole
-                    )
-                    for columnNumber in range(self.tableWidget.model().columnCount())
-                    ]
-                writer.writerow(fields)
-
     def saveAsButtonClicked(self):
         '''
         Open a file selector dialog for the user to pick a file, then use this file to save the tablewidget content
@@ -78,7 +59,7 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
             return
 
         # save to the selected file
-        self.save(fname[0])
+        self.tableWidget.save(fname[0])
 
         # add this file to the combobox
         self.sequenceBox.blockSignals(True)
@@ -94,9 +75,9 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
         If no file is selected, bring the Save As dialog instead.
         '''
         self.saveButton.setFocus(Qt.MouseFocusReason) # this is needed de-focus any cell currently being edited
-        filename = self.sequenceBox.currentText()
-        if filename != '':
-            self.save(filename)
+        filename = self.tableWidget.file()
+        if filename != '' and filename != 'Load sequence ...':
+            self.tableWidget.save(filename)
         else:
             self.saveAsButtonClicked()
 
@@ -106,12 +87,27 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
         '''
         self.sequenceBox.blockSignals(True)
 
-        current = self.sequenceBox.currentIndex()
-        last = self.sequenceBox.count() - 1
+        currentIndex = self.sequenceBox.currentIndex()
+        lastIndex = self.sequenceBox.count() - 1
+        currentFile = self.tableWidget.file()
+        loadSequence = self.sequenceBox.currentText() == 'Load sequence ...'
+
+        if not self.tableWidget.isSaved():
+            confirmation_message = "There are unsaved changes in your sequence. Would you like to save them first?"
+            reply = QMessageBox.question(self, 'Save changes?',
+                                         confirmation_message, QMessageBox.No, QMessageBox.Yes)
+            if reply == QMessageBox.Yes:
+                self.saveButtonClicked()
+                # if user was selecting the 'Load sequence ...' item, we need an offset
+                # if currentIndex == lastIndex:
+                #    currentIndex += 1
+                # self.sequenceBox.setCurrentIndex(currentIndex)
+            else:
+                pass
 
         # user wants to load a sequence from a file
-        if self.sequenceBox.currentText() == 'Load sequence ...':
-            fname = QFileDialog.getOpenFileName(filter='Comma separated values file (*.csv);;All Files (*)')[0]
+        if loadSequence:
+            fname = QFileDialog.getOpenFileName(None, 'Load sequence', '.csv', filter='Comma separated values file (*.csv);;All Files (*)')[0]
 
             # check if we don't deal with a file already in the list
             repeat = False
@@ -124,26 +120,15 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
             if fname == '':
                 self.sequenceBox.setCurrentIndex(-1)
             elif repeat == False:
-                    self.sequenceBox.insertItem(last, fname)
-                    self.sequenceBox.setCurrentIndex(last)
+                    self.sequenceBox.insertItem(lastIndex, fname)
+                    self.sequenceBox.setCurrentIndex(lastIndex)
 
         # user selected another sequence file already in the list
         else:
             fname = self.sequenceBox.currentText()
 
         # whatever the user picked above, repopulate the table
-        try:
-            with open(fname, "r") as fileInput:
-                self.tableWidget.setRowCount(0)
-                for row in csv.reader(fileInput):
-                    i = self.tableWidget.rowCount()
-                    self.tableWidget.insertRow(i)
-                    for col, field in enumerate(row):
-                        item = QTableWidgetItem(field)
-                        self.tableWidget.setItem(i, col, item)
-
-        except FileNotFoundError:
-            pass
+        self.tableWidget.load(fname)
 
         self.sequenceBox.blockSignals(False)
 
