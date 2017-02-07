@@ -4,7 +4,6 @@ import os
 import sys
 from logging.handlers import RotatingFileHandler
 from PyQt5 import QtWidgets
-import ui
 from qplaintexteditlogger import QPlainTextEditLogger
 from version import updateVersion
 
@@ -112,8 +111,9 @@ def loggingsetup(cfg, logginghandler):
     rootLogger.addHandler(consoleLogger)
 
 def main():
-    # make sure we're displaying the correct version
+    # make sure we're displaying the correct version before importing ui code
     updateVersion()
+    import ui
 
     # default configuration
     cfg = {}

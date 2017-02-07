@@ -230,7 +230,7 @@ class Ui_MainWindow(object):
         self.commandEdit.setPlaceholderText(_translate("MainWindow", "Example: F, Ft ..."))
         self.queryButton.setText(_translate("MainWindow", "ibwrt | ibrd"))
         self.queryResponseButton.setText(_translate("MainWindow", "ibwrt | ibrsp"))
-        self.versionLabel.setText(_translate("MainWindow", "v0.0.0-0-gabcdefg"))
+        self.versionLabel.setText(_translate("MainWindow", "v0.2.0-9-g2ffdc02"))
         self.writeButton.setText(_translate("MainWindow", "ibwrt"))
         self.readButton.setText(_translate("MainWindow", "ibrd"))
         self.serialPollButton.setText(_translate("MainWindow", "ibrsp"))

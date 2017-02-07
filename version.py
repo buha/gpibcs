@@ -1,14 +1,14 @@
 import re
 import subprocess
 
-def updateVersionInFile(file, version):
+def updateVersionInFile(file, regexp, version):
     with open(file, "r") as sources:
         lines = sources.readlines()
     with open(file, "w") as f:
         for line in lines:
             try:
                 # replace the line with the result of regex substitution
-                f.write(re.sub(r'(v\d\.\d\.\d)(-\d-g[a-gA-G0-9]{7})?', version, line))
+                f.write(re.sub(regexp, version, line))
             except:
                 # copy the original line in case of matching failure
                 f.write(line)
@@ -29,7 +29,8 @@ def updateVersion():
 
     version = out.decode("utf-8").rstrip('\n')
 
-    for file in [designFile, buildinstallerFile]:
-        updateVersionInFile(file, version)
+    updateVersionInFile(designFile, r'(v\d\.\d\.\d)(-\d-g[a-gA-G0-9]{7})?', version)
+    updateVersionInFile(buildinstallerFile, r'ProductVersion = \"(\d\.\d\.\d)(-\d-g[a-gA-G0-9]{7})?\"',
+                                             'ProductVersion = \"{}\"'.format(version))
 
 
