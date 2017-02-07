@@ -1,7 +1,7 @@
 import sys
 import os
 import logging
-from PyQt5.QtWidgets import QMainWindow, QMessageBox, QFileDialog
+from PyQt5.QtWidgets import QMainWindow, QMessageBox, QFileDialog, QHeaderView
 from PyQt5.QtCore import Qt, QSize, pyqtSlot, pyqtSignal
 from PyQt5.QtGui import QIcon
 import design
@@ -29,6 +29,10 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
         self.saveButton.clicked.connect(self.saveButtonClicked)
         self.sequenceBox.setCurrentIndex(-1)
         self.sequenceBox.currentIndexChanged.connect(self.sequenceBoxChanged)
+        h = self.tableWidget.horizontalHeader()
+        h.setSectionResizeMode(0, QHeaderView.ResizeToContents)
+        h.setSectionResizeMode(1, QHeaderView.Stretch)
+        h.setSectionResizeMode(2, QHeaderView.ResizeToContents)
 
         # start with a hidden right panel
         self.sidePanel.setHidden(True)
@@ -137,16 +141,21 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
         Handler for the button that exposes the advanced right panel with the sequence table.
         '''
         h = self.sidePanel.isHidden()
+
         sw = self.size()
         sp = self.sidePanel.size()
+        offset = 32
         if h:
-            self.resize(QSize(sw.width() + sp.width() +  self.sidePanelLayout.spacing(), sw.height()))
+            self.resize(QSize(sw.width() * 2 - offset, sw.height()))
             self.sidePanel.setHidden(False)
             self.sidePanelButton.setText('<\n<\n<\n')
         else:
-            self.resize(QSize(sw.width() - sp.width() - self.sidePanelLayout.spacing(), sw.height()))
+            self.resize(QSize((sw.width() + offset) / 2, sw.height()))
             self.sidePanel.setHidden(True)
             self.sidePanelButton.setText('>\n>\n>\n')
+
+        logging.debug('Side panel: {} x {} -> {} x {}'.format(self.size().width(), self.size().height(),
+                                                              self.size().width(), self.size().height()))
 
     def runButtonClicked(self):
         '''
