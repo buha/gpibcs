@@ -243,7 +243,6 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
         elif text == self.queryResponseButton.text():
             self.sequence.put(('ibwrt', self.commandEdit.text(), None))
             self.sequence.put(('waitsrq', None, None))
-            self.sequence.put(('ibrsp', True, None))
         elif text == self.writeButton.text():
             self.sequence.put(('ibwrt', self.commandEdit.text(), None))
         elif text == self.readButton.text():
