@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>652</width>
-    <height>496</height>
+    <width>903</width>
+    <height>620</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -147,7 +147,7 @@
                <enum>Qt::Vertical</enum>
               </property>
               <property name="sizeType">
-               <enum>QSizePolicy::Minimum</enum>
+               <enum>QSizePolicy::Maximum</enum>
               </property>
               <property name="sizeHint" stdset="0">
                <size>
@@ -156,6 +156,20 @@
                </size>
               </property>
              </spacer>
+            </item>
+            <item>
+             <widget class="QLabel" name="versionLabel">
+              <property name="font">
+               <font>
+                <weight>75</weight>
+                <italic>true</italic>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>v0.0.0-0-gabcdefg</string>
+              </property>
+             </widget>
             </item>
            </layout>
           </item>
@@ -261,13 +275,13 @@
         </property>
         <property name="minimumSize">
          <size>
-          <width>400</width>
+          <width>300</width>
           <height>0</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>400</width>
+          <width>16777215</width>
           <height>16777215</height>
          </size>
         </property>
@@ -298,7 +312,7 @@
                 <string>Save</string>
                </property>
                <property name="text">
-                <string>S</string>
+                <string>Save</string>
                </property>
                <property name="icon">
                 <iconset>
@@ -312,7 +326,7 @@
                 <string>Save As</string>
                </property>
                <property name="text">
-                <string>...</string>
+                <string>Save as</string>
                </property>
                <property name="icon">
                 <iconset>

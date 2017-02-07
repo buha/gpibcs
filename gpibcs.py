@@ -6,6 +6,7 @@ from logging.handlers import RotatingFileHandler
 from PyQt5 import QtWidgets
 import ui
 from qplaintexteditlogger import QPlainTextEditLogger
+from version import updateVersion
 
 def confparse(filename, cfg):
     '''
@@ -111,6 +112,9 @@ def loggingsetup(cfg, logginghandler):
     rootLogger.addHandler(consoleLogger)
 
 def main():
+    # make sure we're displaying the correct version
+    updateVersion()
+
     # default configuration
     cfg = {}
     cfg['logFileName'] = os.path.basename(__file__).split('.')[0] + '.log'
