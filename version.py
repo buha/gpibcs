@@ -29,8 +29,8 @@ def updateVersion():
 
     version = out.decode("utf-8").rstrip('\n')
 
-    updateVersionInFile(designFile, r'(v\d\.\d\.\d)(-\d-g[a-gA-G0-9]{7})?', version)
-    updateVersionInFile(buildinstallerFile, r'ProductVersion = \"(\d\.\d\.\d)(-\d-g[a-gA-G0-9]{7})?\"',
+    updateVersionInFile(designFile, r'(v\d+\.\d+\.\d+)(-\d+-g[a-gA-G0-9]{7})?', version)
+    updateVersionInFile(buildinstallerFile, r'ProductVersion = \"(\d+\.\d+\.\d+)(-\d+-g[a-gA-G0-9]{7})?\"',
                                              'ProductVersion = \"{}\"'.format(version))
 
 

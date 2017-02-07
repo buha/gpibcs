@@ -161,6 +161,7 @@
              <widget class="QLabel" name="versionLabel">
               <property name="font">
                <font>
+                <pointsize>9</pointsize>
                 <weight>75</weight>
                 <italic>true</italic>
                 <bold>true</bold>
@@ -168,6 +169,9 @@
               </property>
               <property name="text">
                <string>v0.0.0-0-gabcdefg</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
               </property>
              </widget>
             </item>
@@ -408,6 +412,9 @@ p, li { white-space: pre-wrap; }
               </property>
               <property name="toolTip">
                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The data field meaning depends on the command:&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;(ibwrt) command string&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;(ibrd) ignored&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;(ibrsp) ignored&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;(ibclr) ignored&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;(waitsrq) ignored&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;(pause) duration in second&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="textAlignment">
+               <set>AlignCenter</set>
               </property>
              </column>
              <column>
