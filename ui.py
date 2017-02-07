@@ -237,6 +237,8 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
         self.sequenceBox.setFocus(Qt.MouseFocusReason)
 
     def cmdButtonClicked(self, text):
+        logging.debug('clicked ' + self.queryButton.text())
+
         if text == self.queryButton.text():
             self.sequence.put(('ibwrt', self.commandEdit.text(), None))
             self.sequence.put(('ibrd', None, None))
@@ -306,6 +308,7 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
             instr.read_stb = MethodType(telhacks.read_stb_with_previous, instr)
             instr.timeout = float(cfg['gpibResponseTimeout']) * 1000 # in milliseconds
 
+        logging.debug('connected to ' + i)
         return rm, instr
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -389,3 +392,8 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
     @pyqtSlot()
     def onFinished(self):
         pass
+
+    def showEvent(self, QShowEvent):
+        # print software version
+        logging.debug('gpibcs version: ' + self.versionLabel.text())
+        QMainWindow.showEvent(self, QShowEvent)
