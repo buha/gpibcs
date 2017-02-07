@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(903, 620)
+        MainWindow.resize(640, 640)
         MainWindow.setMinimumSize(QtCore.QSize(572, 0))
         icon = QtGui.QIcon()
         icon.addPixmap(QtGui.QPixmap("icons/gpibcs.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
@@ -234,7 +234,7 @@ class Ui_MainWindow(object):
         self.commandEdit.setPlaceholderText(_translate("MainWindow", "Example: F, Ft ..."))
         self.queryButton.setText(_translate("MainWindow", "ibwrt | ibrd"))
         self.queryResponseButton.setText(_translate("MainWindow", "ibwrt | ibrsp"))
-        self.versionLabel.setText(_translate("MainWindow", "v0.2.0-11-gce86c78"))
+        self.versionLabel.setText(_translate("MainWindow", "v0.2.0-13-g8689e30"))
         self.writeButton.setText(_translate("MainWindow", "ibwrt"))
         self.readButton.setText(_translate("MainWindow", "ibrd"))
         self.serialPollButton.setText(_translate("MainWindow", "ibrsp"))
