@@ -17,18 +17,27 @@ def updateVersion():
     designFile = "design.py"
     buildinstallerFile = "buildinstaller.wxs"
 
-    p = subprocess.Popen(['git', 'describe', '--tags'],
-                         stdout=subprocess.PIPE,
-                         stderr=subprocess.PIPE)
-    out, err = p.communicate()
-
-    # git describe fails, we're most likely running on Windows from the installation directory
-    if out == b'':
-        # don't update the version
+    try:
+        p = subprocess.Popen(['git', 'describe', '--tags'],
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE)
+        out, err = p.communicate()
+        
+        # git describe fails, we're most likely running on Windows from the installation directory
+        if out == b'':
+            # don't update the version
+            return
+    except:
         return
+    
 
     version = out.decode("utf-8").rstrip('\n')
+    match = re.match(r'v(\d+)\.(\d+)\.(\d+)-(\d+)-', version)
+    major = match.group(1)
+    minor = match.group(2)
+    feature = match.group(3)
+    commits = match.group(4)
 
     updateVersionInFile(designFile, r'(v\d+\.\d+\.\d+)(-\d+-g[a-gA-G0-9]{7})?', version)
-    updateVersionInFile(buildinstallerFile, r'ProductVersion = \"(\d+\.\d+\.\d+)(-\d+-g[a-gA-G0-9]{7})?\"',
-                                             'ProductVersion = \"{}\"'.format(version))
+    updateVersionInFile(buildinstallerFile, r'ProductVersion = \"\d+\.\d+\.\d+.\d+\"',
+                                             'ProductVersion = \"{}\"'.format(major + '.' + minor + '.' + feature + '.' + commits))
