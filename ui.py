@@ -1,5 +1,5 @@
 import sys
-import os
+from os import listdir, path, getcwd
 import logging
 from PyQt5.QtWidgets import QMainWindow, QMessageBox, QFileDialog, QHeaderView
 from PyQt5.QtCore import Qt, QSize, pyqtSlot, pyqtSignal
@@ -17,6 +17,8 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
     def __init__(self, cfg, parent=None):
         super(GPIBTesterWindow, self).__init__(parent)
         self.setupUi(self)
+
+        # button actions
         self.queryButton.clicked.connect(lambda: self.cmdButtonClicked(self.queryButton.text()))
         self.queryResponseButton.clicked.connect(lambda: self.cmdButtonClicked(self.queryResponseButton.text()))
         self.writeButton.clicked.connect(lambda: self.cmdButtonClicked(self.writeButton.text()))
@@ -27,8 +29,20 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
         self.sidePanelButton.clicked.connect(self.sidePanelButtonClicked)
         self.saveAsButton.clicked.connect(self.saveAsButtonClicked)
         self.saveButton.clicked.connect(self.saveButtonClicked)
+
+        # auto-load some sequences
+        sequencedir=path.join(getcwd(), 'sequence/')
+        try:
+            sequences = [path.join(sequencedir, f) for f in listdir('sequence/') if path.isfile(path.join('sequence/', f)) and f[-4:] == '.csv']
+            for s in sequences:
+                self.sequenceBox.addAndSelect(s)
+        except FileNotFoundError:
+            pass
+
         self.sequenceBox.setCurrentIndex(-1)
         self.sequenceBox.currentIndexChanged.connect(self.sequenceBoxChanged)
+
+        # table header policies
         h = self.tableWidget.horizontalHeader()
         h.setSectionResizeMode(0, QHeaderView.ResizeToContents)
         h.setSectionResizeMode(1, QHeaderView.Stretch)
@@ -66,11 +80,7 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
         self.tableWidget.save(fname[0])
 
         # add this file to the combobox
-        self.sequenceBox.blockSignals(True)
-        last = self.sequenceBox.count() - 1
-        self.sequenceBox.insertItem(last, fname[0])
-        self.sequenceBox.setCurrentIndex(last)
-        self.sequenceBox.blockSignals(False)
+        self.sequenceBox.addAndSelect(fname[0])
 
     def saveButtonClicked(self):
         '''
@@ -89,11 +99,6 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
         '''
         Handler for the sequence file selection dialog.
         '''
-        self.sequenceBox.blockSignals(True)
-
-        currentIndex = self.sequenceBox.currentIndex()
-        lastIndex = self.sequenceBox.count() - 1
-        currentFile = self.tableWidget.file()
         loadSequence = self.sequenceBox.currentText() == 'Load sequence ...'
 
         if not self.tableWidget.isSaved():
@@ -102,10 +107,6 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
                                          confirmation_message, QMessageBox.No, QMessageBox.Yes)
             if reply == QMessageBox.Yes:
                 self.saveButtonClicked()
-                # if user was selecting the 'Load sequence ...' item, we need an offset
-                # if currentIndex == lastIndex:
-                #    currentIndex += 1
-                # self.sequenceBox.setCurrentIndex(currentIndex)
             else:
                 pass
 
@@ -124,8 +125,7 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
             if fname == '':
                 self.sequenceBox.setCurrentIndex(-1)
             elif repeat == False:
-                    self.sequenceBox.insertItem(lastIndex, fname)
-                    self.sequenceBox.setCurrentIndex(lastIndex)
+                    self.sequenceBox.addAndSelect(fname)
 
         # user selected another sequence file already in the list
         else:
@@ -133,8 +133,6 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
 
         # whatever the user picked above, repopulate the table
         self.tableWidget.load(fname)
-
-        self.sequenceBox.blockSignals(False)
 
     def sidePanelButtonClicked(self):
         '''

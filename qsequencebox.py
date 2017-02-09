@@ -2,6 +2,13 @@ from PyQt5.QtWidgets import QComboBox
 from PyQt5 import QtCore
 
 class QSequenceBox(QComboBox):
+    def addAndSelect(self, path):
+        self.blockSignals(True)
+        last = self.count() - 1
+        self.insertItem(last, path)
+        self.setCurrentIndex(last)
+        self.blockSignals(False)
+
     def keyPressEvent(self, QKeyEvent):
         '''
         Overloads method in QComboBox to prevent keyboard selection of last index (Load sequence...)

@@ -305,6 +305,15 @@
             <layout class="QHBoxLayout" name="horizontalLayout">
              <item>
               <widget class="QSequenceBox" name="sequenceBox">
+               <property name="currentText">
+                <string>Load sequence ...</string>
+               </property>
+               <property name="insertPolicy">
+                <enum>QComboBox::InsertBeforeCurrent</enum>
+               </property>
+               <property name="minimumContentsLength">
+                <number>40</number>
+               </property>
                <item>
                 <property name="text">
                  <string>Load sequence ...</string>

@@ -144,6 +144,8 @@ class Ui_MainWindow(object):
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.sequenceBox = QSequenceBox(self.sidePanel)
+        self.sequenceBox.setInsertPolicy(QtWidgets.QComboBox.InsertBeforeCurrent)
+        self.sequenceBox.setMinimumContentsLength(40)
         self.sequenceBox.setObjectName("sequenceBox")
         icon1 = QtGui.QIcon()
         icon1.addPixmap(QtGui.QPixmap("icons/document-open.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
@@ -234,7 +236,7 @@ class Ui_MainWindow(object):
         self.commandEdit.setPlaceholderText(_translate("MainWindow", "Example: F, Ft ..."))
         self.queryButton.setText(_translate("MainWindow", "ibwrt | ibrd"))
         self.queryResponseButton.setText(_translate("MainWindow", "ibwrt | ibrsp"))
-        self.versionLabel.setText(_translate("MainWindow", "v0.2.0-19-g3dd139c"))
+        self.versionLabel.setText(_translate("MainWindow", "v0.2.1"))
         self.writeButton.setText(_translate("MainWindow", "ibwrt"))
         self.readButton.setText(_translate("MainWindow", "ibrd"))
         self.serialPollButton.setText(_translate("MainWindow", "ibrsp"))
@@ -243,6 +245,7 @@ class Ui_MainWindow(object):
 ">\n"
 ">\n"
 "", "More"))
+        self.sequenceBox.setCurrentText(_translate("MainWindow", "Load sequence ..."))
         self.sequenceBox.setItemText(0, _translate("MainWindow", "Load sequence ..."))
         self.saveButton.setToolTip(_translate("MainWindow", "Save"))
         self.saveButton.setText(_translate("MainWindow", "Save"))
