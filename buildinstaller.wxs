@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<?define ProductVersion = "0.2.0.16"?>
+<?define ProductVersion = "0.2.0.17"?>
 <?define ProductUpgradeCode = "12345678-1234-1234-1234-111111111111"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
    <Product Id="*" UpgradeCode="$(var.ProductUpgradeCode)" 
