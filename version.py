@@ -32,12 +32,15 @@ def updateVersion():
     
 
     version = out.decode("utf-8").rstrip('\n')
-    match = re.match(r'v(\d+)\.(\d+)\.(\d+)-(\d+)-', version)
+    match = re.match(r'v(\d+)\.(\d+)\.(\d+)(-(\d+)-)?', version)
     major = match.group(1)
     minor = match.group(2)
     feature = match.group(3)
-    commits = match.group(4)
+    commits = match.group(5)
 
     updateVersionInFile(designFile, r'(v\d+\.\d+\.\d+)(-\d+-g[a-gA-G0-9]{7})?', version)
+    wxsversion = major + '.' + minor + '.' + feature
+    if commits:
+        wxsversion += '.' + commits
     updateVersionInFile(buildinstallerFile, r'ProductVersion = \"\d+\.\d+\.\d+.\d+\"',
-                                             'ProductVersion = \"{}\"'.format(major + '.' + minor + '.' + feature + '.' + commits))
+                                             'ProductVersion = \"{}\"'.format(wxsversion))
