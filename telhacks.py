@@ -60,5 +60,7 @@ class GPIBInstrument(_GPIBMixin, MessageBasedResource):
             # instead of redoing a serial poll (as the original pyvisa does)
             if rsp.timed_out == False:
                 break
+            else:
+                raise VisaIOError(constants.StatusCode.error_timeout)
 
-        #self.discard_events(constants.VI_EVENT_SERVICE_REQ, constants.VI_QUEUE)
+        self.disable_event(constants.VI_EVENT_SERVICE_REQ, constants.VI_QUEUE)
