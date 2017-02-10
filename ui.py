@@ -99,7 +99,7 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
         '''
         Handler for the sequence file selection dialog.
         '''
-        loadSequence = self.sequenceBox.currentText() == 'Load sequence ...'
+        load = not self.sequenceBox.isSelectionAFile()
 
         if not self.tableWidget.isSaved():
             confirmation_message = "There are unsaved changes in your sequence. Would you like to save them first?"
@@ -111,27 +111,16 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
                 pass
 
         # user wants to load a sequence from a file
-        if loadSequence:
+        if load:
             fname = QFileDialog.getOpenFileName(None, 'Load sequence', '.csv', filter='Comma separated values file (*.csv);;All Files (*)')[0]
-
-            # check if we don't deal with a file already in the list
-            repeat = False
-            for i in range(self.sequenceBox.count()):
-                if self.sequenceBox.itemText(i) == fname:
-                    self.sequenceBox.setCurrentIndex(i)
-                    repeat = True
-                    break
-
             if fname == '':
-                self.sequenceBox.setCurrentIndex(-1)
-            elif repeat == False:
-                    self.sequenceBox.addAndSelect(fname)
-
+                self.sequenceBox.addAndSelect(self.tableWidget.file())
         # user selected another sequence file already in the list
         else:
-            fname = self.sequenceBox.currentText()
+            fname = self.sequenceBox.currentFile()
 
-        # whatever the user picked above, repopulate the table
+        # whatever the user picked above, select it in the combo box and repopulate the table
+        self.sequenceBox.addAndSelect(fname)
         self.tableWidget.load(fname)
 
     def sidePanelButtonClicked(self):
