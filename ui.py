@@ -9,14 +9,23 @@ from types import MethodType
 from telcommands import *
 import telhacks
 import queue
+from gpibcs import loggingsetup
 
 class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
     '''
     The main window.
     '''
-    def __init__(self, cfg, parent=None):
+    def __init__(self, cfg, parser, parent=None):
         super(GPIBTesterWindow, self).__init__(parent)
         self.setupUi(self)
+        self._cfg = cfg
+        self._parser = parser
+
+        # set up logging
+        loggingsetup(cfg, self.canvas)
+
+        # print active configuration
+        logging.debug("Started " + os.path.basename(__file__) + " with the following configuration:" + str(cfg))
 
         # button actions
         self.queryButton.clicked.connect(lambda: self.cmdButtonClicked(self.queryButton.text()))
@@ -31,14 +40,15 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
         self.saveButton.clicked.connect(self.saveButtonClicked)
 
         # auto-load some sequences
-        sequencedir=path.join(getcwd(), 'sequence/')
-        try:
-            sequences = [path.join(sequencedir, f) for f in listdir('sequence/') if path.isfile(path.join('sequence/', f)) and f[-4:] == '.csv']
-            for s in sequences:
-                self.sequenceBox.addAndSelect(s)
-        except FileNotFoundError:
-            pass
+        for dir in cfg['autoLoadDirs']:
+            try:
+                sequences = [path.join(dir, f) for f in listdir(dir) if path.isfile(path.join(dir, f)) and f[-4:] == '.csv']
+                for s in sequences:
+                    self.sequenceBox.addAndSelect(s)
+            except FileNotFoundError:
+                logging.info("Could not auto-load sequence files from \"{}\"".format(dir))
 
+        self.sequenceBox.setModified(False)
         self.sequenceBox.setCurrentIndex(-1)
         self.sequenceBox.currentIndexChanged.connect(self.sequenceBoxChanged)
 
@@ -72,9 +82,12 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
         :return:
         '''
         # select a file to save to using the dialog
-        fname = QFileDialog.getSaveFileName(None, 'Save As', '.csv', filter='Comma separated values file (*.csv)')
+        dir = self._cfg['lastUsedDir']
+        fname = QFileDialog.getSaveFileName(None, 'Save As', dir, filter='Comma separated values file (*.csv)')
         if fname[0] == '':
             return
+        else:
+            self._cfg['lastUsedDir'] = path.dirname(fname)
 
         # save to the selected file
         self.tableWidget.save(fname[0])
@@ -112,9 +125,12 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
 
         # user wants to load a sequence from a file
         if load:
-            fname = QFileDialog.getOpenFileName(None, 'Load sequence', '.csv', filter='Comma separated values file (*.csv);;All Files (*)')[0]
+            dir = self._cfg['lastUsedDir']
+            fname = QFileDialog.getOpenFileName(self, 'Load sequence', dir, filter='Comma separated values file (*.csv);;All Files (*)')[0]
             if fname == '':
                 self.sequenceBox.addAndSelect(self.tableWidget.file())
+            else:
+                self._cfg['lastUsedDir'] = path.dirname(fname)
         # user selected another sequence file already in the list
         else:
             fname = self.sequenceBox.currentFile()
@@ -293,7 +309,7 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
             instr = rm.open_resource(i)
 
             instr.read_stb = MethodType(telhacks.read_stb_with_previous, instr)
-            instr.timeout = float(cfg['gpibResponseTimeout']) * 1000 # in milliseconds
+            instr.timeout = float(cfg['gpibTimeout']) * 1000 # in milliseconds
 
         logging.debug('connected to ' + i)
         return rm, instr
@@ -384,3 +400,17 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
         # print software version
         logging.debug('gpibcs version: ' + self.versionLabel.text())
         QMainWindow.showEvent(self, QShowEvent)
+
+    ''' This implementation properly saves the config to the .conf but also deletes the comments
+    def closeEvent(self, event):
+        self._parser.set('gui', 'lastUsedDir', self._cfg['lastUsedDir'])
+        try:
+            with open('gpibcs.conf', 'w') as configfile:
+                self._parser.write(configfile)
+        except Exception as e:
+            quit_msg = "Some settings could not be saved, most likely due to insufficient permissions for gpibcs.conf."
+            reply = QMessageBox.question(self, '',
+                                               quit_msg, QMessageBox.Ok)
+
+            event.accept()
+    '''

@@ -29,14 +29,14 @@ def confparse(filename, cfg):
             sys.exit(message)
 
     # Initialize a config
-    config = configparser.RawConfigParser(delimiters=('='),
+    parser = configparser.RawConfigParser(delimiters=('='),
                                           comment_prefixes=('#'),
                                           inline_comment_prefixes=('#'),
                                           empty_lines_in_values=False)
 
     # try to open the configuration file
     try:
-        config.read(filename)
+        parser.read(filename)
     except IOError:
         sys.exit('Configuration file ' + filename + ' could not be found.')
     except configparser.ParsingError as e:
@@ -49,22 +49,22 @@ def confparse(filename, cfg):
         confparseExHandle(filename, e)
 
     try:
-        cfg['logFileName'] = config.get('logging', 'logFileName')
+        cfg['logFileName'] = parser.get('logging', 'logFileName')
     except Exception as e:
         confparseExHandle(filename, e)
 
     try:
-        cfg['logFileSize'] = config.getint('logging', 'logFileSize')
+        cfg['logFileSize'] = parser.getint('logging', 'logFileSize')
     except Exception as e:
         confparseExHandle(filename, e)
 
     try:
-        cfg['logFileLevel'] = 10 * config.getint('logging', 'logFileLevel')
+        cfg['logFileLevel'] = 10 * parser.getint('logging', 'logFileLevel')
     except Exception as e:
         confparseExHandle(filename, e)
 
     try:
-        cfg['logConsoleLevel'] = 10 * config.getint('logging', 'logConsoleLevel')
+        cfg['logConsoleLevel'] = 10 * parser.getint('logging', 'logConsoleLevel')
         if (cfg['logConsoleLevel'] > logging.CRITICAL or
                     cfg['logConsoleLevel'] == logging.NOTSET or
                     cfg['logFileLevel'] > logging.CRITICAL or
@@ -74,14 +74,28 @@ def confparse(filename, cfg):
         confparseExHandle(filename, e)
 
     try:
-        cfg['gpibDevice'] = config.get('gpib', 'gpibDevice')
+        cfg['gpibDevice'] = parser.get('gpib', 'gpibDevice')
     except Exception as e:
         confparseExHandle(filename, e)
 
     try:
-        cfg['gpibResponseTimeout'] = config.get('gpib', 'gpibResponseTimeout')
+        cfg['gpibTimeout'] = parser.get('gpib', 'gpibTimeout')
     except Exception as e:
         confparseExHandle(filename, e)
+
+    try:
+        cfg['lastUsedDir'] = parser.get('gui', 'lastUsedDir')
+    except Exception as e:
+        confparseExHandle(filename, e)
+
+    try:
+        dirsString = parser.get('gui', 'autoLoadDirs')
+        dirsList = [e.strip() for e in dirsString.split(',')]
+        cfg['autoLoadDirs'] = dirsList
+    except Exception as e:
+        confparseExHandle(filename, e)
+
+    return parser
 
 def loggingsetup(cfg, logginghandler):
     '''
@@ -122,23 +136,19 @@ def main():
     cfg['logFileLevel'] = logging.DEBUG
     cfg['logConsoleLevel'] = logging.INFO
     cfg['gpibDevice'] = 'GPIB0::5::INSTR'
-    cfg['gpibResponseTimeout'] = 30
+    cfg['gpibTimeout'] = 3
+    cfg['lastUsedDir'] = ''
+    cfg['autoLoadDirs'] = []
 
     # find out which .conf file we are using
     filename = os.path.basename(__file__).split('.')[0] + '.conf'
 
     # overwrite configuration with the contents of .conf file
-    confparse(filename, cfg)
+    parser = confparse(filename, cfg)
 
     # set up graphics
     app = QtWidgets.QApplication(sys.argv)
-    form = ui.GPIBTesterWindow(cfg)
-
-    # set up logging
-    loggingsetup(cfg, form.canvas)
-
-    # print active configuration
-    logging.debug("Started " + os.path.basename(__file__) + " with the following configuration:" + str(cfg))
+    form = ui.GPIBTesterWindow(cfg, parser)
 
     # draw
     form.show()

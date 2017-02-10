@@ -7,6 +7,7 @@ class QSequenceBox(QComboBox):
         super().__init__()
         self.setDuplicatesEnabled(False)
         self.files = []
+        self._modifiedByUser = False
 
     def addAndSelect(self, path):
         '''
@@ -36,10 +37,17 @@ class QSequenceBox(QComboBox):
             self.insertItem(last, splitext(basename(path))[0])
             self.files.append(path)
             self.setCurrentIndex(last)
+            self._modifiedByUser = True
 
         self.setToolTip(path)
 
         self.blockSignals(False)
+
+    def setModified(self, modified):
+        self._modifiedByUser = modified
+
+    def modified(self):
+        return self._modifiedByUser
 
     def currentFile(self):
         try:
