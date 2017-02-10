@@ -46,7 +46,8 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
                 for s in sequences:
                     self.sequenceBox.addAndSelect(s)
             except FileNotFoundError:
-                logging.info("Could not auto-load sequence files from \"{}\"".format(dir))
+                if dir is not '':
+                    logging.info("Could not auto-load sequence files from \"{}\"".format(dir))
 
         self.sequenceBox.setModified(False)
         self.sequenceBox.setCurrentIndex(-1)
@@ -129,6 +130,7 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
             fname = QFileDialog.getOpenFileName(self, 'Load sequence', dir, filter='Comma separated values file (*.csv);;All Files (*)')[0]
             if fname == '':
                 self.sequenceBox.addAndSelect(self.tableWidget.file())
+                return
             else:
                 self._cfg['lastUsedDir'] = path.dirname(fname)
         # user selected another sequence file already in the list
