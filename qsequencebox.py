@@ -26,18 +26,19 @@ class QSequenceBox(QComboBox):
         last = self.count() - 1
 
         # figure out if we deal with a file already in the list
-        repeat = False
+        fileAlreadyInList = False
         for i in range(last):
             if self.files[i] == path:
-                self.setCurrentIndex(i)
-                repeat = True
+                fileAlreadyInList = True
                 break
 
-        if repeat == False:
+        if fileAlreadyInList == False:
             self.insertItem(last, splitext(basename(path))[0])
             self.files.append(path)
             self.setCurrentIndex(last)
             self._modifiedByUser = True
+        else:
+            self.setCurrentIndex(i)
 
         self.setToolTip(path)
 

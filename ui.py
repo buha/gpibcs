@@ -410,7 +410,7 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
         logging.debug('gpibcs version: ' + self.versionLabel.text())
         QMainWindow.showEvent(self, QShowEvent)
 
-    ''' This implementation properly saves the config to the .conf but also deletes the comments
+    # This implementation properly saves the config to the .conf but also deletes the comments
     def closeEvent(self, event):
         self._parser.set('gui', 'lastUsedDir', self._cfg['lastUsedDir'])
         try:
@@ -418,8 +418,6 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
                 self._parser.write(configfile)
         except Exception as e:
             quit_msg = "Some settings could not be saved, most likely due to insufficient permissions for gpibcs.conf."
-            reply = QMessageBox.question(self, '',
-                                               quit_msg, QMessageBox.Ok)
+            reply = QMessageBox.question(self, '', quit_msg, QMessageBox.Ok)
 
             event.accept()
-    '''
