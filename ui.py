@@ -352,6 +352,14 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
 
     @pyqtSlot(int, str)
     def onStepFinished(self, status, result):
+        try:
+            while not self.thread.isFinished():
+                # wait for the thread to terminate
+                # it is certain that it will terminate but maybe there is a better way to do this
+                pass
+        except AttributeError:
+            # if the thread is finished, the object may have been garbage collected
+            pass
 
         # if status is not success, clear sequence in order to abort
         if 'success' not in constants.StatusCode(status).name:
@@ -373,7 +381,7 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
                 seqi = self.sequence.get_nowait()
                 self.repeatBox.setValue(self.repeatBox.value() - 1)
             else:
-                self.xableItems(False)
+                self.sequenceCopy.queue.clear()
                 if self.runRequestActive:
                     self.runRequestActive = False
                     if self.stopRequestActive:
@@ -381,6 +389,7 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
                         logging.info('{:-^50}'.format(' Sequence stopped by user '))
                     else:
                         logging.info('{:-^50}'.format(' Sequence end '))
+                self.xableItems(False)
                 return
 
         # arm and start the thread
