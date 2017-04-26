@@ -213,6 +213,9 @@
                  <iconset>
                   <normaloff>icons/bug.png</normaloff>icons/bug.png</iconset>
                 </property>
+                <property name="checkable">
+                 <bool>true</bool>
+                </property>
                </widget>
               </item>
               <item>
@@ -238,6 +241,9 @@
                 <property name="icon">
                  <iconset>
                   <normaloff>icons/info.svg</normaloff>icons/info.svg</iconset>
+                </property>
+                <property name="checkable">
+                 <bool>true</bool>
                 </property>
                </widget>
               </item>

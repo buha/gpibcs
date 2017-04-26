@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'ui/mainwindow.ui'
+# Form implementation generated from reading ui file 'ui/main-window.ui'
 #
 # Created by: PyQt5 UI code generator 5.7
 #
@@ -96,6 +96,7 @@ class Ui_MainWindow(object):
         icon1 = QtGui.QIcon()
         icon1.addPixmap(QtGui.QPixmap("icons/bug.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.bugButton.setIcon(icon1)
+        self.bugButton.setCheckable(True)
         self.bugButton.setObjectName("bugButton")
         self.infoLayout.addWidget(self.bugButton)
         self.infoButton = QtWidgets.QPushButton(self.centralwidget)
@@ -109,6 +110,7 @@ class Ui_MainWindow(object):
         icon2 = QtGui.QIcon()
         icon2.addPixmap(QtGui.QPixmap("icons/info.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.infoButton.setIcon(icon2)
+        self.infoButton.setCheckable(True)
         self.infoButton.setObjectName("infoButton")
         self.infoLayout.addWidget(self.infoButton)
         self.verticalLayout.addLayout(self.infoLayout)
@@ -266,7 +268,7 @@ class Ui_MainWindow(object):
         self.commandEdit.setPlaceholderText(_translate("MainWindow", "Example: F, Ft ..."))
         self.queryButton.setText(_translate("MainWindow", "ibwrt | ibrd"))
         self.queryResponseButton.setText(_translate("MainWindow", "ibwrt | ibrsp"))
-        self.versionLabel.setText(_translate("MainWindow", "v0.2.2-1-g15bf9a4"))
+        self.versionLabel.setText(_translate("MainWindow", "v0.2.2-2-g9ccc665"))
         self.bugButton.setToolTip(_translate("MainWindow", "Found a bug? Report it."))
         self.infoButton.setToolTip(_translate("MainWindow", "Need help? Access the documentation."))
         self.writeButton.setText(_translate("MainWindow", "ibwrt"))

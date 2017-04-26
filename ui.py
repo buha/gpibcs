@@ -17,6 +17,35 @@ import time
 import glob
 
 class GPIBTesterWindow(QMainWindow, mainwindow.Ui_MainWindow):
+
+    @pyqtSlot(str)
+    def info(self, message):
+        logging.info(message)
+
+    @pyqtSlot(str)
+    def error(self, message):
+        logging.error(message)
+
+    @pyqtSlot(str)
+    def warning(self, message):
+        logging.warning(message)
+
+    @pyqtSlot(str)
+    def critical(self, message):
+        logging.critical(message)
+
+    @pyqtSlot()
+    def onFinished(self):
+        pass
+
+    @pyqtSlot()
+    def onBugReportDialogClosed(self):
+        self.bugButton.setChecked(False)
+
+    @pyqtSlot()
+    def onInfoDialogClosed(self):
+        self.infoButton.setChecked(False)
+
     '''
     The main window.
     '''
@@ -43,7 +72,7 @@ class GPIBTesterWindow(QMainWindow, mainwindow.Ui_MainWindow):
         self.sidePanelButton.clicked.connect(self.sidePanelButtonClicked)
         self.saveAsButton.clicked.connect(self.saveAsButtonClicked)
         self.saveButton.clicked.connect(self.saveButtonClicked)
-        self.bugButton.clicked.connect(self.bugButtonClicked)
+        self.bugButton.pressed.connect(self.bugButtonClicked)
 
         # auto-load some sequences
         for dir in cfg['autoLoadDirs']:
@@ -287,7 +316,9 @@ class GPIBTesterWindow(QMainWindow, mainwindow.Ui_MainWindow):
         sys.exit()
 
     def bugButtonClicked(self):
+        self.bugButton.setChecked(True)
         self.dialog = BugReportDialog(self._cfg)
+        self.dialog.closed.connect(self.onBugReportDialogClosed)
         self.dialog.show()
 
     def connect(self, cfg):
@@ -329,22 +360,6 @@ class GPIBTesterWindow(QMainWindow, mainwindow.Ui_MainWindow):
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.instr.close()
         self.rm.close()
-
-    @pyqtSlot(str)
-    def info(self, message):
-        logging.info(message)
-
-    @pyqtSlot(str)
-    def error(self, message):
-        logging.error(message)
-
-    @pyqtSlot(str)
-    def warning(self, message):
-        logging.warning(message)
-
-    @pyqtSlot(str)
-    def critical(self, message):
-        logging.critical(message)
 
     def postExecution(self, action, command, status, result):
         if action == 'ibwrt':
@@ -413,10 +428,6 @@ class GPIBTesterWindow(QMainWindow, mainwindow.Ui_MainWindow):
         self.thread.finished.connect(self.onStepFinished)
         self.thread.start()
 
-    @pyqtSlot()
-    def onFinished(self):
-        pass
-
     def showEvent(self, QShowEvent):
         # print software version
         logging.debug('gpibcs version: ' + self.versionLabel.text())
@@ -435,6 +446,9 @@ class GPIBTesterWindow(QMainWindow, mainwindow.Ui_MainWindow):
             event.accept()
 
 class BugReportDialog(QDialog, bugreport.Ui_bugReportDialog):
+
+    closed = pyqtSignal()
+
     def __init__(self, cfg):
         super(BugReportDialog, self).__init__()
         self.setupUi(self)
@@ -465,3 +479,6 @@ class BugReportDialog(QDialog, bugreport.Ui_bugReportDialog):
 
     def bugReportLinkClicked(self):
         webbrowser.open('https://github.com/buha/gpibcs/issues/new')
+
+    def closeEvent(self, event):
+        self.closed.emit()
