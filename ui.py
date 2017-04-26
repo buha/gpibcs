@@ -11,6 +11,7 @@ import telhacks
 import queue
 from gpibcs import loggingsetup
 import bugreport
+import docbrowser
 import webbrowser
 import zipfile as zf
 import time
@@ -43,7 +44,7 @@ class GPIBTesterWindow(QMainWindow, mainwindow.Ui_MainWindow):
         self.bugButton.setChecked(False)
 
     @pyqtSlot()
-    def onInfoDialogClosed(self):
+    def onDocDialogClosed(self):
         self.infoButton.setChecked(False)
 
     '''
@@ -72,7 +73,8 @@ class GPIBTesterWindow(QMainWindow, mainwindow.Ui_MainWindow):
         self.sidePanelButton.clicked.connect(self.sidePanelButtonClicked)
         self.saveAsButton.clicked.connect(self.saveAsButtonClicked)
         self.saveButton.clicked.connect(self.saveButtonClicked)
-        self.bugButton.pressed.connect(self.bugButtonClicked)
+        self.bugButton.clicked.connect(self.bugButtonClicked)
+        self.infoButton.clicked.connect(self.infoButtonClicked)
 
         # auto-load some sequences
         for dir in cfg['autoLoadDirs']:
@@ -316,10 +318,24 @@ class GPIBTesterWindow(QMainWindow, mainwindow.Ui_MainWindow):
         sys.exit()
 
     def bugButtonClicked(self):
-        self.bugButton.setChecked(True)
+        if not self.bugButton.isChecked():
+            self.dialog.close()
+            self.bugButton.setChecked(False)
+            return
         self.dialog = BugReportDialog(self._cfg)
+        self.bugButton.setChecked(True)
         self.dialog.closed.connect(self.onBugReportDialogClosed)
         self.dialog.show()
+
+    def infoButtonClicked(self):
+        if not self.infoButton.isChecked():
+            self.docdialog.close()
+            self.infoButton.setChecked(False)
+            return
+        self.docdialog = DocBrowserDialog('doc/user-manual.html')
+        self.infoButton.setChecked(True)
+        self.docdialog.closed.connect(self.onDocDialogClosed)
+        self.docdialog.show()
 
     def connect(self, cfg):
         rm = None
@@ -479,6 +495,21 @@ class BugReportDialog(QDialog, bugreport.Ui_bugReportDialog):
 
     def bugReportLinkClicked(self):
         webbrowser.open('https://github.com/buha/gpibcs/issues/new')
+
+    def closeEvent(self, event):
+        self.closed.emit()
+
+class DocBrowserDialog(QDialog, docbrowser.Ui_docBrowser ):
+
+    closed = pyqtSignal()
+
+    def __init__(self, html):
+        super(DocBrowserDialog, self).__init__()
+        self.setupUi(self)
+        with open(html, 'r') as f:
+            html = f.read()
+        self.webView.setHtml(html)
+        self.webView.show()
 
     def closeEvent(self, event):
         self.closed.emit()
