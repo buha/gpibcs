@@ -1,17 +1,22 @@
 import sys
 from os import listdir, path, getcwd
 import logging
-from PyQt5.QtWidgets import QMainWindow, QMessageBox, QFileDialog, QHeaderView
+from PyQt5.QtWidgets import QMainWindow, QMessageBox, QFileDialog, QHeaderView, QDialog
 from PyQt5.QtCore import Qt, QSize, pyqtSlot, pyqtSignal
 from PyQt5.QtGui import QIcon
-import design
+import mainwindow
 from types import MethodType
 from telcommands import *
 import telhacks
 import queue
 from gpibcs import loggingsetup
+import bugreport
+import webbrowser
+import zipfile as zf
+import time
+import glob
 
-class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
+class GPIBTesterWindow(QMainWindow, mainwindow.Ui_MainWindow):
     '''
     The main window.
     '''
@@ -38,6 +43,7 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
         self.sidePanelButton.clicked.connect(self.sidePanelButtonClicked)
         self.saveAsButton.clicked.connect(self.saveAsButtonClicked)
         self.saveButton.clicked.connect(self.saveButtonClicked)
+        self.bugButton.clicked.connect(self.bugButtonClicked)
 
         # auto-load some sequences
         for dir in cfg['autoLoadDirs']:
@@ -280,6 +286,12 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
         self.close()
         sys.exit()
 
+    def bugButtonClicked(self):
+        print('clicked')
+        self.dialog = BugReportDialog(self._cfg)
+        self.dialog.show()
+
+
     def connect(self, cfg):
         rm = None
         instr = None
@@ -423,3 +435,37 @@ class GPIBTesterWindow(QMainWindow, design.Ui_MainWindow):
             reply = QMessageBox.question(self, '', quit_msg, QMessageBox.Ok)
 
             event.accept()
+
+class BugReportDialog(QDialog, bugreport.Ui_bugReportDialog):
+    def __init__(self, cfg):
+        super(BugReportDialog, self).__init__()
+        self.setupUi(self)
+
+        self.bugFileLink.clicked.connect(self.bugFileLinkClicked)
+        self.bugReportLink.clicked.connect(self.bugReportLinkClicked)
+
+        self.installationPath = os.path.dirname(os.path.realpath(cfg['logFileName']))
+        self.bugReportPath = self.installationPath + '/bugreport-' + time.strftime("%Y%m%d-%H%M%S") + '.zip'
+
+
+
+        z = zf.ZipFile(self.bugReportPath, 'w')
+
+        # add the .conf file to the zip
+        z.write('gpibcs.conf')
+
+        # add the .log files to the zip
+        for f in glob.glob(os.path.basename(cfg['logFileName']) + "*"):
+            z.write(f)
+
+        # add the sequence files to the zip
+        for f in os.listdir('sequence'):
+            z.write('sequence/' + os.path.basename(f))
+
+        self.bugFileLabel.setText(self.bugReportPath)
+
+    def bugFileLinkClicked(self):
+        webbrowser.open(self.installationPath)
+
+    def bugReportLinkClicked(self):
+        webbrowser.open('https://github.com/buha/gpibcs/issues/new')

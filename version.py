@@ -14,7 +14,7 @@ def updateVersionInFile(file, regexp, version):
                 f.write(line)
 
 def updateVersion():
-    designFile = "design.py"
+    designFile = "mainwindow.py"
     buildinstallerFile = "buildinstaller.wxs"
 
     try:
