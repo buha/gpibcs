@@ -287,10 +287,8 @@ class GPIBTesterWindow(QMainWindow, mainwindow.Ui_MainWindow):
         sys.exit()
 
     def bugButtonClicked(self):
-        print('clicked')
         self.dialog = BugReportDialog(self._cfg)
         self.dialog.show()
-
 
     def connect(self, cfg):
         rm = None
@@ -446,8 +444,6 @@ class BugReportDialog(QDialog, bugreport.Ui_bugReportDialog):
 
         self.installationPath = os.path.dirname(os.path.realpath(cfg['logFileName']))
         self.bugReportPath = self.installationPath + '/bugreport-' + time.strftime("%Y%m%d-%H%M%S") + '.zip'
-
-
 
         z = zf.ZipFile(self.bugReportPath, 'w')
 
