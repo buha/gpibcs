@@ -115,14 +115,22 @@
         </item>
         <item>
          <widget class="QLineEdit" name="commandEdit">
+          <property name="toolTip">
+           <string>Typical data: 
+Ft 
+A 
+O 
+C@@@@@@@@ 
+Q</string>
+          </property>
           <property name="styleSheet">
-           <string notr="true">background-color: transparent; border: 1px solid grey;</string>
+           <string notr="true">border: 1px solid grey;</string>
           </property>
           <property name="frame">
            <bool>false</bool>
           </property>
           <property name="placeholderText">
-           <string>Example: F, Ft ...</string>
+           <string>ibwrt data string</string>
           </property>
           <property name="clearButtonEnabled">
            <bool>false</bool>
@@ -136,14 +144,14 @@
             <item>
              <widget class="QPushButton" name="queryButton">
               <property name="text">
-               <string>ibwrt | ibrd</string>
+               <string>ibwrt → ibrd</string>
               </property>
              </widget>
             </item>
             <item>
              <widget class="QPushButton" name="queryResponseButton">
               <property name="text">
-               <string>ibwrt | ibrsp</string>
+               <string>ibwrt → waitsrq</string>
               </property>
              </widget>
             </item>
@@ -180,6 +188,9 @@
                 </property>
                 <property name="alignment">
                  <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                </property>
+                <property name="textInteractionFlags">
+                 <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
                 </property>
                </widget>
               </item>
@@ -262,6 +273,9 @@
            <layout class="QVBoxLayout" name="verticalLayout_2">
             <item>
              <widget class="QPushButton" name="writeButton">
+              <property name="toolTip">
+               <string/>
+              </property>
               <property name="text">
                <string>ibwrt</string>
               </property>
@@ -373,6 +387,9 @@
             <layout class="QHBoxLayout" name="horizontalLayout">
              <item>
               <widget class="QSequenceBox" name="sequenceBox">
+               <property name="toolTip">
+                <string>Sequence selector</string>
+               </property>
                <property name="currentText">
                 <string>Load sequence ...</string>
                </property>
@@ -538,6 +555,9 @@ p, li { white-space: pre-wrap; }
             <layout class="QHBoxLayout" name="horizontalLayout_4">
              <item>
               <widget class="QPushButton" name="runButton">
+               <property name="toolTip">
+                <string>Run / Stop sequence</string>
+               </property>
                <property name="text">
                 <string>Run</string>
                </property>
@@ -571,11 +591,14 @@ p, li { white-space: pre-wrap; }
                  <verstretch>0</verstretch>
                 </sizepolicy>
                </property>
+               <property name="toolTip">
+                <string>Sequence multiplier</string>
+               </property>
                <property name="minimum">
                 <number>1</number>
                </property>
                <property name="maximum">
-                <number>100</number>
+                <number>1200000</number>
                </property>
               </widget>
              </item>

@@ -55,7 +55,7 @@ class Ui_MainWindow(object):
         self.canvas.setObjectName("canvas")
         self.verticalLayout_3.addWidget(self.canvas)
         self.commandEdit = QtWidgets.QLineEdit(self.centralwidget)
-        self.commandEdit.setStyleSheet("background-color: transparent; border: 1px solid grey;")
+        self.commandEdit.setStyleSheet("border: 1px solid grey;")
         self.commandEdit.setFrame(False)
         self.commandEdit.setClearButtonEnabled(False)
         self.commandEdit.setObjectName("commandEdit")
@@ -82,6 +82,7 @@ class Ui_MainWindow(object):
         font.setWeight(75)
         self.versionLabel.setFont(font)
         self.versionLabel.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
+        self.versionLabel.setTextInteractionFlags(QtCore.Qt.LinksAccessibleByMouse|QtCore.Qt.TextSelectableByMouse)
         self.versionLabel.setObjectName("versionLabel")
         self.infoLayout.addWidget(self.versionLabel)
         self.bugButton = QtWidgets.QPushButton(self.centralwidget)
@@ -123,6 +124,7 @@ class Ui_MainWindow(object):
         self.verticalLayout_2 = QtWidgets.QVBoxLayout()
         self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.writeButton = QtWidgets.QPushButton(self.centralwidget)
+        self.writeButton.setToolTip("")
         self.writeButton.setObjectName("writeButton")
         self.verticalLayout_2.addWidget(self.writeButton)
         self.readButton = QtWidgets.QPushButton(self.centralwidget)
@@ -250,7 +252,7 @@ class Ui_MainWindow(object):
         sizePolicy.setHeightForWidth(self.repeatBox.sizePolicy().hasHeightForWidth())
         self.repeatBox.setSizePolicy(sizePolicy)
         self.repeatBox.setMinimum(1)
-        self.repeatBox.setMaximum(100)
+        self.repeatBox.setMaximum(1200000)
         self.repeatBox.setObjectName("repeatBox")
         self.horizontalLayout_4.addWidget(self.repeatBox)
         self.sidePanelLayout.addLayout(self.horizontalLayout_4)
@@ -265,10 +267,16 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "GPIB Command Sequencer"))
-        self.commandEdit.setPlaceholderText(_translate("MainWindow", "Example: F, Ft ..."))
-        self.queryButton.setText(_translate("MainWindow", "ibwrt | ibrd"))
-        self.queryResponseButton.setText(_translate("MainWindow", "ibwrt | ibrsp"))
-        self.versionLabel.setText(_translate("MainWindow", "v0.2.2-4-g69fcf96"))
+        self.commandEdit.setToolTip(_translate("MainWindow", "Typical data: \n"
+"Ft \n"
+"A \n"
+"O \n"
+"C@@@@@@@@ \n"
+"Q"))
+        self.commandEdit.setPlaceholderText(_translate("MainWindow", "ibwrt data string"))
+        self.queryButton.setText(_translate("MainWindow", "ibwrt → ibrd"))
+        self.queryResponseButton.setText(_translate("MainWindow", "ibwrt → waitsrq"))
+        self.versionLabel.setText(_translate("MainWindow", "v0.2.2-5-g1d1ab27"))
         self.bugButton.setToolTip(_translate("MainWindow", "Found a bug? Report it."))
         self.infoButton.setToolTip(_translate("MainWindow", "Need help? Access the documentation."))
         self.writeButton.setText(_translate("MainWindow", "ibwrt"))
@@ -279,6 +287,7 @@ class Ui_MainWindow(object):
 ">\n"
 ">\n"
 "", "More"))
+        self.sequenceBox.setToolTip(_translate("MainWindow", "Sequence selector"))
         self.sequenceBox.setCurrentText(_translate("MainWindow", "Load sequence ..."))
         self.sequenceBox.setItemText(0, _translate("MainWindow", "Load sequence ..."))
         self.saveButton.setToolTip(_translate("MainWindow", "Save"))
@@ -325,8 +334,10 @@ class Ui_MainWindow(object):
 "<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-weight:600;\">100 - 100 s</span></p>\n"
 "<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-weight:600;\">300 - 300 s</span></p>\n"
 "<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-weight:600;\">1000 - 1000 s</span></p></body></html>"))
+        self.runButton.setToolTip(_translate("MainWindow", "Run / Stop sequence"))
         self.runButton.setText(_translate("MainWindow", "Run"))
         self.repeatLabel.setText(_translate("MainWindow", "X"))
+        self.repeatBox.setToolTip(_translate("MainWindow", "Sequence multiplier"))
 
 from qcustomtablewidget import QCustomTableWidget
 from qsequencebox import QSequenceBox
