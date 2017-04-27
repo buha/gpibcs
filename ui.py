@@ -10,14 +10,16 @@ from telcommands import *
 import telhacks
 import queue
 from gpibcs import loggingsetup
+import deviceselector
 import bugreport
 import docbrowser
 import webbrowser
 import zipfile as zf
 import time
 import glob
+import pyvisa
 
-class GPIBTesterWindow(QMainWindow, mainwindow.Ui_MainWindow):
+class GPIBCSWindow(QMainWindow, mainwindow.Ui_MainWindow):
 
     @pyqtSlot(str)
     def info(self, message):
@@ -47,11 +49,21 @@ class GPIBTesterWindow(QMainWindow, mainwindow.Ui_MainWindow):
     def onDocDialogClosed(self):
         self.infoButton.setChecked(False)
 
-    '''
-    The main window.
-    '''
+    @pyqtSlot(str)
+    def onDeviceSelected(self, device):
+        self.instr = self.rm.open_resource(device)
+        self.instr.read_stb = MethodType(telhacks.read_stb_with_previous, self.instr)
+        self.instr.timeout = float(self._cfg['gpibTimeout']) * 1000  # in milliseconds
+        logging.debug('connected to ' + device)
+
+    @pyqtSlot()
+    def onDeviceSelectorClose(self):
+        # if user quit the dialog using the X button without selecting anything
+        if self.instr is None:
+            sys.exit()
+
     def __init__(self, cfg, parser, parent=None):
-        super(GPIBTesterWindow, self).__init__(parent)
+        super(GPIBCSWindow, self).__init__(parent)
         self.setupUi(self)
         self._cfg = cfg
         self._parser = parser
@@ -111,7 +123,9 @@ class GPIBTesterWindow(QMainWindow, mainwindow.Ui_MainWindow):
         self.stopRequestActive = False
 
         # connect to the device
-        self.rm, self.instr = self.connect(cfg)
+        self.rm = None
+        self.instr = None
+        self.connect(cfg)
 
     def saveAsButtonClicked(self):
         '''
@@ -302,20 +316,8 @@ class GPIBTesterWindow(QMainWindow, mainwindow.Ui_MainWindow):
             else:
                 pass
 
-
         self.xableItems(True)
-
         self.onStepFinished(constants.StatusCode.success, None)
-
-    def showCriticalDialog(self, text):
-        msg = QMessageBox()
-        msg.setIcon(QMessageBox.Critical)
-        msg.setText(text)
-        msg.setWindowTitle("Critical")
-        msg.setStandardButtons(QMessageBox.Close)
-        msg.exec_()
-        self.close()
-        sys.exit()
 
     def bugButtonClicked(self):
         if not self.bugButton.isChecked():
@@ -337,61 +339,9 @@ class GPIBTesterWindow(QMainWindow, mainwindow.Ui_MainWindow):
         self.docdialog.closed.connect(self.onDocDialogClosed)
         self.docdialog.show()
 
-    def connect(self, cfg):
-        rm = None
-        instr = None
-
-        if(os.name == 'posix'):
-            rm = ResourceManager('@py')
-        else:
-            rm = ResourceManager()
-
-        i = cfg['gpibDevice']
-        if i != '':
-            r = None
-            try:
-                r = rm.list_resources()
-            except:
-                s = i + ' is not connected.'
-                logging.critical(s)
-                self.showCriticalDialog(s)
-
-            if i not in r:
-                s = i + ' is not connected.'
-                for i in r:
-                    if 'GPIB' in i:
-                        s += '\nDetected device ' + i 
-                logging.critical(s)
-                self.showCriticalDialog(s)
-                
-
-            instr = rm.open_resource(i)
-
-            instr.read_stb = MethodType(telhacks.read_stb_with_previous, instr)
-            instr.timeout = float(cfg['gpibTimeout']) * 1000 # in milliseconds
-
-        logging.debug('connected to ' + i)
-        return rm, instr
-
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.instr.close()
         self.rm.close()
-
-    def postExecution(self, action, command, status, result):
-        if action == 'ibwrt':
-            if command == 'U':
-                self.instr.timeout = self.savedTimeout
-                logging.info('Restored timeout to {}'.format(self.instr.timeout))
-            elif command == 'Q':
-                if result == '0x47':
-                    logging.info('Prober state is READY')
-                if result == '0x4B':
-                    logging.info('Prober state is LASTDIE')
-                elif result == '0x62':
-                    logging.info('Prober state is STOP')
-                else:
-                    # I don't know
-                    pass
 
     @pyqtSlot(int, str)
     def onStepFinished(self, status, result):
@@ -461,6 +411,33 @@ class GPIBTesterWindow(QMainWindow, mainwindow.Ui_MainWindow):
 
             event.accept()
 
+    def connect(self, cfg):
+        self.selector = DeviceSelectorDialog()
+        self.selector.selected.connect(self.onDeviceSelected)
+        self.selector.closed.connect(self.onDeviceSelectorClose)
+        self.selector.setModal(True)
+
+        if(os.name == 'posix'):
+            self.rm = ResourceManager('@py')
+        else:
+            self.rm = ResourceManager()
+
+        i = cfg['gpibDevice']
+        if i != '': # this `if` is a backdoor in order to be able to debug the ui without actually connecting
+            r = None
+
+            # No device available
+            try:
+                r = self.rm.list_resources()
+                if i not in r:
+                    self.selector.setText('Failed to auto-connect to ' + i)
+                    self.selector.setEntries(r)
+                    self.selector.exec_()
+            except:
+                self.selector.setText('Failed to auto-connect to ' + i)
+                self.selector.setEntries([])
+                self.selector.exec_()
+
 class BugReportDialog(QDialog, bugreport.Ui_bugReportDialog):
 
     closed = pyqtSignal()
@@ -509,6 +486,41 @@ class DocBrowserDialog(QDialog, docbrowser.Ui_docBrowser ):
         dir = os.path.dirname(html)
         self.webView.load(QUrl.fromLocalFile(os.path.realpath(html)))
         self.webView.show()
+
+    def closeEvent(self, event):
+        self.closed.emit()
+
+class DeviceSelectorDialog(QDialog, deviceselector.Ui_deviceDialog):
+
+    closed = pyqtSignal()
+    selected = pyqtSignal(str)
+
+    def __init__(self):
+        super().__init__()
+        self.setupUi(self)
+        self.selector.currentIndexChanged.connect(self.onSelectorValueChanged)
+
+    def setText(self, text):
+        self.label.setText(text)
+
+    def setEntries(self, entries):
+        self.blockSignals(True)
+        if len(entries) == 0:
+            self.selector.addItem('No GPIB device detected')
+            self.selector.setEnabled(False)
+        else:
+            self.selector.addItem('{} device{} found. Select which one to use.'.format(len(entries), 's' if len(entries) > 1 else ''))
+            self.selector.insertSeparator(1)
+            for e in entries:
+                self.selector.addItem(e)
+        self.blockSignals(False)
+
+    def onSelectorValueChanged(self):
+        if self.selector.currentIndex() == 0:
+            return
+        else:
+            self.selected.emit(self.selector.currentText())
+            self.close()
 
     def closeEvent(self, event):
         self.closed.emit()

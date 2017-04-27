@@ -58,7 +58,7 @@ class Ui_bugReportDialog(object):
 
     def retranslateUi(self, bugReportDialog):
         _translate = QtCore.QCoreApplication.translate
-        bugReportDialog.setWindowTitle(_translate("bugReportDialog", "Bug report"))
+        bugReportDialog.setWindowTitle(_translate("bugReportDialog", "gpibcs | bug report"))
         self.bugFileLink.setText(_translate("bugReportDialog", "Open containing folder"))
         self.bugReportLink.setText(_translate("bugReportDialog", "File bug report in browser"))
 

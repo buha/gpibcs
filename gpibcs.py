@@ -148,7 +148,7 @@ def main():
 
     # set up graphics
     app = QtWidgets.QApplication(sys.argv)
-    form = ui.GPIBTesterWindow(cfg, parser)
+    form = ui.GPIBCSWindow(cfg, parser)
 
     # draw
     form.show()
