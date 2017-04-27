@@ -2,7 +2,7 @@ import sys
 from os import listdir, path, getcwd
 import logging
 from PyQt5.QtWidgets import QMainWindow, QMessageBox, QFileDialog, QHeaderView, QDialog
-from PyQt5.QtCore import Qt, QSize, pyqtSlot, pyqtSignal
+from PyQt5.QtCore import Qt, QSize, pyqtSlot, pyqtSignal, QUrl
 from PyQt5.QtGui import QIcon
 import mainwindow
 from types import MethodType
@@ -506,9 +506,8 @@ class DocBrowserDialog(QDialog, docbrowser.Ui_docBrowser ):
     def __init__(self, html):
         super(DocBrowserDialog, self).__init__()
         self.setupUi(self)
-        with open(html, 'r') as f:
-            html = f.read()
-        self.webView.setHtml(html)
+        dir = os.path.dirname(html)
+        self.webView.load(QUrl.fromLocalFile(os.path.realpath(html)))
         self.webView.show()
 
     def closeEvent(self, event):
