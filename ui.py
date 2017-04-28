@@ -293,7 +293,7 @@ class GPIBCSWindow(QMainWindow, mainwindow.Ui_MainWindow):
         self.sequenceBox.setFocus(Qt.MouseFocusReason)
 
     def cmdButtonClicked(self, text):
-        logging.debug('clicked ' + self.queryButton.text())
+        logging.debug('clicked {}'.format(self.queryButton.text().encode('utf-8')))
 
         if text == self.queryButton.text():
             self.sequence.put(('ibwrt', self.commandEdit.text(), None))
@@ -428,14 +428,21 @@ class GPIBCSWindow(QMainWindow, mainwindow.Ui_MainWindow):
 
             # No device available
             try:
-                r = self.rm.list_resources()
-                if i not in r:
+                r = self.rm.list_resources() # raw resources
+                fr = [] # filtered resources
+                for e in r:
+                    if 'GPIB' in e:
+                        fr.append(e)
+
+                if i not in fr:
                     if i == '':
                         self.selector.setText('Device selection')
                     else:
                         self.selector.setText('Failed to auto-connect to ' + i)
-                    self.selector.setEntries(r)
+                    self.selector.setEntries(fr)
                     self.selector.exec_()
+                else:
+                    self.onDeviceSelected(i)
             except:
                 self.selector.setText('Failed to auto-connect to ' + i)
                 self.selector.setEntries([])

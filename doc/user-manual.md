@@ -49,7 +49,11 @@ Once you're happy with your sequence you can run it by clicking on `Run`. Note t
 ![12a](13b.png)
 ![12a](13a.png)
 
-## 4. Configuration parameters
+## 4. User interface tips
+* Some items are documented using mouse hover hints, make sure to use this feature.
+* You can browse the sequence selector using the keyboard navigation arrows when the selector is in focus.
+
+## 5. Configuration parameters
 * Section `logging`
 `logfilename` - log file name [default: gpibcs.log]
 `logfilesize` - log file size measured in kilobytes [default: 102400]
@@ -62,7 +66,7 @@ Once you're happy with your sequence you can run it by clicking on `Run`. Note t
 
 * Section `gui`
 `lastuseddir` - last used directory when loading sequences. It is overwritten on exit.
-`autoloaddirs` - by setting this to a list of directories containing sequences, the sequences will show up in the selection list
+`autoloaddirs` - by setting this to a comma separated list of directories, the sequences within the directories will show up in the selection drop-down list
 
 ## Contact
 For any bug reports or feature requests please contact darius.berghe@europe.tel.com.
