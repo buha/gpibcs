@@ -16,45 +16,53 @@ No package is currently being offered for Linux but it is the platform of choice
 ## 3. Usage
 
 ### 3.a. Device Configuration
-If `gpibcs` is started without any GPIB device connected, the interface will simply notify via an error dialog and quit.
-![No GPIB device connected](error-no-device.png)
+When launched,`gpibcs` will attempt to automatically use a device specified in the configuration file `gpibcs.conf`. On success the main window is displayed, otherwise you will be presented with this device selection dialog. Simply select a device to use it.
+![device-selection](00.gif)
 
-When launched, `gpibcs` relies on information in `C:\Program Files\GPIBCS\gpibcs.conf` in order to connect to a specific device. Please modify the file accordingly to allow connection to your devices. The example shown below configures `gpibcs` to connect to the device with primary address `5` of the board `0`. The board number is typically zero, unless you have more boards connected, in which case it increases.
+One typically works with only one device and wants to bypass device selection. You can achieve this by manipulating the relevant parameter in the configuration file. The example shown below configures `gpibcs` to use the device with primary address `5` of the board `0`. The board number is typically zero, unless you have more boards connected, in which case it increases.
 ```
 gpibDevice = GPIB0::5::INSTR
 ```
-Provided that there is at least one other device connected, the message will contain its address which you can then manually replace in the `gpibcs.conf` file.
-![Wrong GPIB Device connected](error-other-device.png)
-
 ### 3.b. GPIB commands
-After correctly configuring `GPIBCS`, you will be presented with thie following screen. You can write any command in the command input box because TEL commands comprised only of printable ASCII characters. For this example, we use the command `Ft` which retrieves the prober model using a sequence of `ibwrt` and `ibrd`. Click `ibwrt` first, and `ibrd` secondly.
-![1](01a-ibwrt.png) ![2](01b-ibrd.png)
+A typical use case is a write followed by a read. By writing `Ft` and reading the response on can get the TEL prober model. Click `ibwrt` first, and `ibrd` secondly. This frequently used sequence can also be accomplished using the button `ibwrt->ibrd`.
+![1](01a.png)
 
-Commands that require a wait on a particular SRQ can accomplished manually by an `ibwrt` followed by repeated clicks on `ibrsp` until the desired SRQ is received. It may be possible, as in our case, that the SRQ arrives quickly so only one `ibrsp` suffices.
-![1](02a-ibwrt.png) ![2](02b-ibrsp.png) ![3](02c-ibrsp.png)
-
-Due to the fact that simple sequences such as `ibwrt`->`ibrd` and `ibwrt`-> wait SRQ ->`ibrsp` are very common, the two buttons used below do exactly the same as what we previously achieved using basic commands:
-![1](03a-ibwrt-ibrd.png) ![2](03b-ibwrt-ibrsp.png)
+Commands that require a wait on a particular SRQ can accomplished manually by an `ibwrt` followed by repeated clicks on `ibrsp` until the desired SRQ is received. The equivalent action can be performed by pressing the equivalent `ibwrt->waitsrq` button.
+![1](01b.png)
 
 ### GPIB command sequences
 Clicking on the side button exposes the sequence panel. You can load, edit, save and execute GPIB command sequences from this panel.
 
 To **edit** command sequences, double click in an empty cell of the table and start typing. You can also insert/remove rows by right clicking anywhere in the table to get a context menu with such choices.
-![10a](10a.png)
+![10](10.png)
 
 The sequence table contains 3 columns: **command**, **data** and **timeout**. Hover the mouse over any of the table headers to get hints of what should you insert into each, what are the measurement units etc.
-![10b](10b.png)
 
 To **save** the sequence for future use click **Save** or **Save As** icons in the top right and choose a destionation file in *.csv* format.
+![11](11.png)
 
-To **load** a sequence, click on the sequence selection combo box and select `Load sequence...`. Pick for example `bin1_pass.csv` and the file contents will be displayed in the sequence table as in the image below.
+To **load** a sequence, click on the sequence selection combo box and select `Load sequence...`. Pick for example `bin1_pass.csv` and the file contents will be displayed in the sequence table.
 ![12a](12a.png)
-![12b](12b.png)
+![12a](12b.png)
 
-You can stop the execution of any command by clicking the stop button while a sequence's execution is pending.
-![13a](13a.png)
+Once you're happy with your sequence you can run it by clicking on `Run`. Note that a sequence can be repeated for a specified number of times using the sequence multiplier. You can stop the execution of any command by clicking the stop button while a sequence's execution is pending.
+![12a](13b.png)
+![12a](13a.png)
 
-A sequence can be repeated for a specified number of times using the sequence multiplier.
+## 4. Configuration parameters
+* Section `logging`
+`logfilename` - log file name [default: gpibcs.log]
+`logfilesize` - log file size measured in kilobytes [default: 102400]
+`logfilelevel` - level of details in the file [default: 1]  (1 - highest, 5 - lowest)
+`logconsolelevel` - level of details on the GUI console [default: 2] (1 - highest, 5 - lowest)
+
+* Section `gpib`
+`gpibdevice` - default device to use in the format GPIBx::y::INSTR where x is the dongle number (incremental from zero) and y is the primary address configured on the prober. Leave blank to ask for device selection each time.
+`gpibresponsetimeout` - GPIB bus timeout in seconds [default: 3]
+
+* Section `gui`
+`lastuseddir` - last used directory when loading sequences. It is overwritten on exit.
+`autoloaddirs` - by setting this to a list of directories containing sequences, the sequences will show up in the selection list
 
 ## Contact
 For any bug reports or feature requests please contact darius.berghe@europe.tel.com.

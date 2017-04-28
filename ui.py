@@ -54,7 +54,7 @@ class GPIBCSWindow(QMainWindow, mainwindow.Ui_MainWindow):
         self.instr = self.rm.open_resource(device)
         self.instr.read_stb = MethodType(telhacks.read_stb_with_previous, self.instr)
         self.instr.timeout = float(self._cfg['gpibTimeout']) * 1000  # in milliseconds
-        logging.debug('connected to ' + device)
+        logging.info('Using device ' + device)
 
     @pyqtSlot()
     def onDeviceSelectorClose(self):
@@ -423,20 +423,24 @@ class GPIBCSWindow(QMainWindow, mainwindow.Ui_MainWindow):
             self.rm = ResourceManager()
 
         i = cfg['gpibDevice']
-        if i != '': # this `if` is a backdoor in order to be able to debug the ui without actually connecting
+        if i != 'test':
             r = None
 
             # No device available
             try:
                 r = self.rm.list_resources()
                 if i not in r:
-                    self.selector.setText('Failed to auto-connect to ' + i)
+                    if i == '':
+                        self.selector.setText('Device selection')
+                    else:
+                        self.selector.setText('Failed to auto-connect to ' + i)
                     self.selector.setEntries(r)
                     self.selector.exec_()
             except:
                 self.selector.setText('Failed to auto-connect to ' + i)
                 self.selector.setEntries([])
                 self.selector.exec_()
+
 
 class BugReportDialog(QDialog, bugreport.Ui_bugReportDialog):
 
