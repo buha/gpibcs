@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/bug-report.ui'
 #
-# Created by: PyQt5 UI code generator 5.7
+# Created by: PyQt5 UI code generator 5.7.1
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -18,6 +18,9 @@ class Ui_bugReportDialog(object):
         sizePolicy.setHeightForWidth(bugReportDialog.sizePolicy().hasHeightForWidth())
         bugReportDialog.setSizePolicy(sizePolicy)
         bugReportDialog.setMinimumSize(QtCore.QSize(0, 100))
+        icon = QtGui.QIcon()
+        icon.addPixmap(QtGui.QPixmap("icons/gpibcs.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        bugReportDialog.setWindowIcon(icon)
         self.gridLayout = QtWidgets.QGridLayout(bugReportDialog)
         self.gridLayout.setObjectName("gridLayout")
         self.verticalLayout = QtWidgets.QVBoxLayout()
@@ -58,7 +61,7 @@ class Ui_bugReportDialog(object):
 
     def retranslateUi(self, bugReportDialog):
         _translate = QtCore.QCoreApplication.translate
-        bugReportDialog.setWindowTitle(_translate("bugReportDialog", "gpibcs | bug report"))
+        bugReportDialog.setWindowTitle(_translate("bugReportDialog", "gpibcs | Bug Report"))
         self.bugFileLink.setText(_translate("bugReportDialog", "Open containing folder"))
         self.bugReportLink.setText(_translate("bugReportDialog", "File bug report in browser"))
 

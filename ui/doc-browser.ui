@@ -11,7 +11,11 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>User Manual</string>
+   <string>gpibcs | User Manual</string>
+   </property>
+   <property name="windowIcon">
+   <iconset>
+   <normaloff>../icons/info.png</normaloff>../icons/info.png</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>

@@ -12,6 +12,9 @@ class Ui_docBrowser(object):
     def setupUi(self, docBrowser):
         docBrowser.setObjectName("docBrowser")
         docBrowser.resize(480, 640)
+        icon = QtGui.QIcon()
+        icon.addPixmap(QtGui.QPixmap("icons/gpibcs.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        docBrowser.setWindowIcon(icon)
         self.verticalLayout = QtWidgets.QVBoxLayout(docBrowser)
         self.verticalLayout.setObjectName("verticalLayout")
         self.webView = QtWebEngineWidgets.QWebEngineView(docBrowser)
@@ -24,6 +27,6 @@ class Ui_docBrowser(object):
 
     def retranslateUi(self, docBrowser):
         _translate = QtCore.QCoreApplication.translate
-        docBrowser.setWindowTitle(_translate("docBrowser", "User Manual"))
+        docBrowser.setWindowTitle(_translate("docBrowser", "gpibcs | User Manual"))
 
 from PyQt5 import QtWebEngineWidgets

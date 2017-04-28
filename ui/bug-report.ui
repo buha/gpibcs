@@ -23,7 +23,11 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>gpibcs | bug report</string>
+   <string>gpibcs | Bug Report</string>
+  </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>icons/bug.png</normaloff>icons/bug.png</iconset>
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0">

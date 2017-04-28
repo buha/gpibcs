@@ -1,5 +1,5 @@
 # TEL GPIBCS
-*This document covers version v0.1.0 of the software*
+
 ## 1. Scope
 `GPIBCS` stands for *General Purpose Interface Bus Command Sequencer*. As such, the scope of this software is to provide a graphical way of issuing single or a sequence of `GPIB` commands to a TEL Prober (officially tested) or any other GPIB capable device (untested).
 
