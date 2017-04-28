@@ -46,6 +46,16 @@
                   <Component Id="DocumentationFiles" Guid="12345678-1234-1234-1234-222222222224">
                       <File Id="Doc1" Source="doc\user-manual.html"/>
                       <File Id="Doc2" Source="doc\user-manual.md"/>
+					  <File Id="Doc3" Source="doc\00.gif"/>
+					  <File Id="Doc4" Source="doc\01a.png"/>
+					  <File Id="Doc5" Source="doc\01b.png"/>
+					  <File Id="Doc6" Source="doc\10.png"/>
+					  <File Id="Doc7" Source="doc\11.png"/>
+					  <File Id="Doc8" Source="doc\12a.png"/>
+					  <File Id="Doc9" Source="doc\12b.png"/>
+					  <File Id="Doc10" Source="doc\13a.png"/>
+					  <File Id="Doc11" Source="doc\13b.png"/>
+					  
                    </Component>
                 </Directory>
             </Directory>
