@@ -12,7 +12,7 @@ import queue
 from gpibcs import loggingsetup
 import deviceselector
 import bugreport
-import docbrowser
+from docbrowser import DocBrowserDialog
 import webbrowser
 import zipfile as zf
 import time
@@ -133,6 +133,7 @@ class GPIBCSWindow(QMainWindow, mainwindow.Ui_MainWindow):
         into it.
         :return:
         '''
+        logging.debug('UI: Save As')
         # select a file to save to using the dialog
         dir = self._cfg['lastUsedDir']
         fname = QFileDialog.getSaveFileName(None, 'Save As', dir, filter='Comma separated values file (*.csv)')
@@ -153,6 +154,7 @@ class GPIBCSWindow(QMainWindow, mainwindow.Ui_MainWindow):
         Pick the currently selected file and save the table contents into it.
         If no file is selected, bring the Save As dialog instead.
         '''
+        logging.debug('UI: Save')
         self.saveButton.setFocus(Qt.MouseFocusReason) # this is needed de-focus any cell currently being edited
         filename = self.tableWidget.file()
         if filename != '' and filename != 'Load sequence ...':
@@ -164,6 +166,7 @@ class GPIBCSWindow(QMainWindow, mainwindow.Ui_MainWindow):
         '''
         Handler for the sequence file selection dialog.
         '''
+        logging.debug('UI: Sequence box value changed')
         load = not self.sequenceBox.isSelectionAFile()
 
         if not self.tableWidget.isSaved():
@@ -196,6 +199,7 @@ class GPIBCSWindow(QMainWindow, mainwindow.Ui_MainWindow):
         '''
         Handler for the button that exposes the advanced right panel with the sequence table.
         '''
+        logging.debug('UI: Side panel button clicked')
         h = self.sidePanel.isHidden()
 
         sw = self.size()
@@ -219,6 +223,7 @@ class GPIBCSWindow(QMainWindow, mainwindow.Ui_MainWindow):
         commands in the sequence table. The first thread is also launched here.
         :return:
         '''
+        logging.debug('UI: {} button clicked, multiplier is {}'.format(self.runButton.text(), self.repeatBox.value()))
         if self.runButton.text() == 'Stop':
             self.thread.wait()
             while self.sequence.qsize() != 0:
@@ -293,7 +298,7 @@ class GPIBCSWindow(QMainWindow, mainwindow.Ui_MainWindow):
         self.sequenceBox.setFocus(Qt.MouseFocusReason)
 
     def cmdButtonClicked(self, text):
-        logging.debug('clicked {}'.format(self.queryButton.text().encode('utf-8')))
+        logging.debug('UI: {} button clicked'.format(self.queryButton.text().encode('utf-8')))
 
         if text == self.queryButton.text():
             self.sequence.put(('ibwrt', self.commandEdit.text(), None))
@@ -320,6 +325,7 @@ class GPIBCSWindow(QMainWindow, mainwindow.Ui_MainWindow):
         self.onStepFinished(constants.StatusCode.success, None)
 
     def bugButtonClicked(self):
+        logging.debug('UI: Bug report button clicked')
         if not self.bugButton.isChecked():
             self.dialog.close()
             self.bugButton.setChecked(False)
@@ -330,6 +336,10 @@ class GPIBCSWindow(QMainWindow, mainwindow.Ui_MainWindow):
         self.dialog.show()
 
     def infoButtonClicked(self):
+        logging.debug('UI: User manual button clicked')
+        webbrowser.open('https://github.com/buha/gpibcs/blob/master/doc/user-manual.md')
+        ''' This code opens a dialog with a browser but pyinstaller
+            does not embed the code properly so I leave it as is
         if not self.infoButton.isChecked():
             self.docdialog.close()
             self.infoButton.setChecked(False)
@@ -338,7 +348,7 @@ class GPIBCSWindow(QMainWindow, mainwindow.Ui_MainWindow):
         self.infoButton.setChecked(True)
         self.docdialog.closed.connect(self.onDocDialogClosed)
         self.docdialog.show()
-
+        '''
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.instr.close()
         self.rm.close()
@@ -461,7 +471,7 @@ class BugReportDialog(QDialog, bugreport.Ui_bugReportDialog):
         self.bugReportLink.clicked.connect(self.bugReportLinkClicked)
 
         self.installationPath = os.path.dirname(os.path.realpath(cfg['logFileName']))
-        self.bugReportPath = self.installationPath + '/bugreport-' + time.strftime("%Y%m%d-%H%M%S") + '.zip'
+        self.bugReportPath = os.path.join(self.installationPath, 'bugreport-' + time.strftime("%Y%m%d-%H%M%S") + '.zip')
 
         z = zf.ZipFile(self.bugReportPath, 'w')
 
@@ -483,20 +493,6 @@ class BugReportDialog(QDialog, bugreport.Ui_bugReportDialog):
 
     def bugReportLinkClicked(self):
         webbrowser.open('https://github.com/buha/gpibcs/issues/new')
-
-    def closeEvent(self, event):
-        self.closed.emit()
-
-class DocBrowserDialog(QDialog, docbrowser.Ui_docBrowser ):
-
-    closed = pyqtSignal()
-
-    def __init__(self, html):
-        super(DocBrowserDialog, self).__init__()
-        self.setupUi(self)
-        dir = os.path.dirname(html)
-        self.webView.load(QUrl.fromLocalFile(os.path.realpath(html)))
-        self.webView.show()
 
     def closeEvent(self, event):
         self.closed.emit()

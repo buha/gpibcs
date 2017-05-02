@@ -1,32 +1,34 @@
-# -*- coding: utf-8 -*-
-
-# Form implementation generated from reading ui file 'ui/doc-browser.ui'
-#
-# Created by: PyQt5 UI code generator 5.7
-#
-# WARNING! All changes made in this file will be lost!
-
 from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtWebEngineWidgets
+import logging
+import os
 
-class Ui_docBrowser(object):
-    def setupUi(self, docBrowser):
-        docBrowser.setObjectName("docBrowser")
-        docBrowser.resize(480, 640)
+class DocBrowserDialog(QtWidgets.QDialog):
+    closed = QtCore.pyqtSignal()
+
+    def __init__(self, html):
+        super().__init__()
+        self.setWindowTitle("gpibcs | User Manual")
+        self.setObjectName("docBrowser")
+        self.resize(480, 640)
         icon = QtGui.QIcon()
         icon.addPixmap(QtGui.QPixmap("icons/gpibcs.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        docBrowser.setWindowIcon(icon)
-        self.verticalLayout = QtWidgets.QVBoxLayout(docBrowser)
+        self.setWindowIcon(icon)
+        self.verticalLayout = QtWidgets.QVBoxLayout(self)
         self.verticalLayout.setObjectName("verticalLayout")
-        self.webView = QtWebEngineWidgets.QWebEngineView(docBrowser)
-        self.webView.setUrl(QtCore.QUrl("about:blank"))
+        logging.debug('creating QWebEngineView')
+        self.webView = QtWebEngineWidgets.QWebEngineView(self)
+        logging.debug('done creating QWebEngineView')
+        logging.debug('setting name')
         self.webView.setObjectName("webView")
+        logging.debug('adding to layout')
         self.verticalLayout.addWidget(self.webView)
+        dir = os.path.dirname(html)
+        logging.debug('load file {}'.format( os.path.realpath(html)))
+        try:
+            self.webView.load(QtCore.QUrl.fromLocalFile(os.path.realpath(html)))
+        except Exception as e:
+            logging.debug(e)
 
-        self.retranslateUi(docBrowser)
-        QtCore.QMetaObject.connectSlotsByName(docBrowser)
-
-    def retranslateUi(self, docBrowser):
-        _translate = QtCore.QCoreApplication.translate
-        docBrowser.setWindowTitle(_translate("docBrowser", "gpibcs | User Manual"))
-
-from PyQt5 import QtWebEngineWidgets
+    def closeEvent(self, event):
+        self.closed.emit()

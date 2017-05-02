@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'ui/main-window.ui'
+# Form implementation generated from reading ui file 'ui\main-window.ui'
 #
 # Created by: PyQt5 UI code generator 5.7.1
 #
@@ -111,7 +111,7 @@ class Ui_MainWindow(object):
         icon2 = QtGui.QIcon()
         icon2.addPixmap(QtGui.QPixmap("icons/info.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.infoButton.setIcon(icon2)
-        self.infoButton.setCheckable(True)
+        self.infoButton.setCheckable(False)
         self.infoButton.setObjectName("infoButton")
         self.infoLayout.addWidget(self.infoButton)
         self.verticalLayout.addLayout(self.infoLayout)
