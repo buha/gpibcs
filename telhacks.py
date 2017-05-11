@@ -17,7 +17,6 @@ def read_stb_with_previous(self, previous=False):
         value, retcode = self.visalib.read_stb(self.session)
     return value
 
-#if os.name == 'posix':
 @Resource.register(constants.InterfaceType.gpib, 'INSTR')
 class GPIBInstrument(_GPIBMixin, MessageBasedResource):
     """Communicates with to devices of type GPIB::<primary address>[::INSTR]
@@ -39,7 +38,7 @@ class GPIBInstrument(_GPIBMixin, MessageBasedResource):
                         None means waiting forever if necessary.
         """
         self.enable_event(constants.VI_EVENT_SERVICE_REQ, constants.VI_QUEUE)
-
+        stb = 0
         timeout = self.timeout
 
         if timeout and not (0 <= timeout <= 4294967295):
@@ -59,8 +58,12 @@ class GPIBInstrument(_GPIBMixin, MessageBasedResource):
             # We serial poll in wait_on_event and respond with an appropriate status code, so check that
             # instead of redoing a serial poll (as the original pyvisa does)
             if rsp.timed_out == False:
-                break
+                stb = self.stb
+                if stb & 0x40:
+                    break
             else:
+                self.disable_event(constants.VI_EVENT_SERVICE_REQ, constants.VI_QUEUE)
                 raise VisaIOError(constants.StatusCode.error_timeout)
 
         self.disable_event(constants.VI_EVENT_SERVICE_REQ, constants.VI_QUEUE)
+        return stb
