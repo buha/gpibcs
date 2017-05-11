@@ -55,10 +55,12 @@ class GPIBInstrument(_GPIBMixin, MessageBasedResource):
                     adjusted_timeout = 0
 
             rsp = self.wait_on_event(constants.VI_EVENT_SERVICE_REQ, adjusted_timeout)
-            # We serial poll in wait_on_event and respond with an appropriate status code, so check that
-            # instead of redoing a serial poll (as the original pyvisa does)
             if rsp.timed_out == False:
-                stb = self.stb
+                if (os.name == 'posix'):
+                    stb = self.read_stb(previous=True)
+                else:
+                    stb = self.stb
+
                 if stb & 0x40:
                     break
             else:
