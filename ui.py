@@ -17,7 +17,7 @@ import webbrowser
 import zipfile as zf
 import time
 import glob
-import pyvisa
+from urllib.request import pathname2url
 
 class GPIBCSWindow(QMainWindow, mainwindow.Ui_MainWindow):
 
@@ -337,18 +337,9 @@ class GPIBCSWindow(QMainWindow, mainwindow.Ui_MainWindow):
 
     def infoButtonClicked(self):
         logging.debug('UI: User manual button clicked')
-        webbrowser.open('https://github.com/buha/gpibcs/blob/master/doc/user-manual.md')
-        ''' This code opens a dialog with a browser but pyinstaller
-            does not embed the code properly so I leave it as is
-        if not self.infoButton.isChecked():
-            self.docdialog.close()
-            self.infoButton.setChecked(False)
-            return
-        self.docdialog = DocBrowserDialog('doc/user-manual.html')
-        self.infoButton.setChecked(True)
-        self.docdialog.closed.connect(self.onDocDialogClosed)
-        self.docdialog.show()
-        '''
+        url = 'file:{}'.format(pathname2url(os.path.abspath('doc/user-manual.html')))
+        webbrowser.open(url)
+
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.instr.close()
         self.rm.close()
