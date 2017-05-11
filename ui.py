@@ -140,7 +140,7 @@ class GPIBCSWindow(QMainWindow, mainwindow.Ui_MainWindow):
         if fname[0] == '':
             return
         else:
-            self._cfg['lastUsedDir'] = path.dirname(fname)
+            self._cfg['lastUsedDir'] = path.dirname(fname[0])
 
         # save to the selected file
         self.tableWidget.save(fname[0])
