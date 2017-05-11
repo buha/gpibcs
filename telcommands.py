@@ -75,6 +75,7 @@ class TELCommandThread(QThread):
         elif self.command == 'waitsrq':
             self.emitFormatted('waitsrq', 'Waiting on status byte...')
             try:
+                self.instr.discard_events(constants.VI_EVENT_SERVICE_REQ, constants.VI_QUEUE)
                 self.instr.wait_for_srq()
                 stb = self.instr.read_stb(previous=True)
                 result = '0x{0:X}'.format(stb)
