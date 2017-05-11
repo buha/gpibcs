@@ -403,6 +403,7 @@ class GPIBCSWindow(QMainWindow, mainwindow.Ui_MainWindow):
     # This implementation properly saves the config to the .conf but also deletes the comments
     def closeEvent(self, event):
         self._parser.set('gui', 'lastUsedDir', self._cfg['lastUsedDir'])
+        self._parser.set('gpib', 'gpibDevice', self._cfg['gpibDevice'])
         try:
             with open('gpibcs.conf', 'w') as configfile:
                 self._parser.write(configfile)

@@ -19,15 +19,15 @@ class QCustomTableWidget(QTableWidget):
         self.setContextMenuPolicy(Qt.ActionsContextMenu)
 
         beforeAction = QAction("Add row before", self)
-        beforeAction.triggered.connect(lambda: self.insertRow(self.currentRow()))
+        beforeAction.triggered.connect(lambda: [self.insertRow(self.currentRow()), self.itemChangedCallback()])
         self.addAction(beforeAction)
 
         afterAction = QAction("Add row after", self)
-        afterAction.triggered.connect(lambda: self.insertRow(self.currentRow() + 1))
+        afterAction.triggered.connect(lambda: [self.insertRow(self.currentRow() + 1), self.itemChangedCallback()])
         self.addAction(afterAction)
 
         removeAction = QAction("Remove row", self)
-        removeAction.triggered.connect(lambda: self.removeRow(self.currentRow()))
+        removeAction.triggered.connect(lambda: [self.removeRow(self.currentRow()), self.itemChangedCallback()])
         self.addAction(removeAction)
 
         # make the columns proportional
@@ -86,6 +86,8 @@ class QCustomTableWidget(QTableWidget):
         if QKeyEvent.key() == QtCore.Qt.Key_Delete:
             selected = self.selectedItems()
             for i in selected:
+                if i.text() != '':
+                    self.itemChangedCallback()
                 i.setText('')
         QTableWidget.keyPressEvent(self, QKeyEvent)
 
