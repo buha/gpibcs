@@ -54,6 +54,7 @@ class GPIBCSWindow(QMainWindow, mainwindow.Ui_MainWindow):
         self.instr = self.rm.open_resource(device)
         self.instr.read_stb = MethodType(telhacks.read_stb_with_previous, self.instr)
         self.instr.timeout = float(self._cfg['gpibTimeout']) * 1000  # in milliseconds
+        self._cfg['gpibDevice'] = device
         logging.info('Using device ' + device)
 
     @pyqtSlot()
