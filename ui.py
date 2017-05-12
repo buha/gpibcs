@@ -402,8 +402,17 @@ class GPIBCSWindow(QMainWindow, mainwindow.Ui_MainWindow):
 
     # This implementation properly saves the config to the .conf but also deletes the comments
     def closeEvent(self, event):
-        self._parser.set('gui', 'lastUsedDir', self._cfg['lastUsedDir'])
-        self._parser.set('gpib', 'gpibDevice', self._cfg['gpibDevice'])
+        self._parser.set('logging', 'logfilename', self._cfg['logFileName'])
+        self._parser.set('logging', 'logfilesize', self._cfg['logFileSize'])
+        self._parser.set('logging', 'logfilelevel', (int)(self._cfg['logFileLevel'] / 10))
+        self._parser.set('logging', 'logconsolelevel', (int)(self._cfg['logConsoleLevel'] / 10))
+
+        self._parser.set('gpib', 'gpibdevice', self._cfg['gpibDevice'])
+        self._parser.set('gpib', 'gpibtimeout', self._cfg['gpibTimeout'])
+
+        self._parser.set('gui', 'lastuseddir', self._cfg['lastUsedDir'])
+        self._parser.set('gui', 'autoloaddirs', ', '.join(self._cfg['autoLoadDirs']))
+
         try:
             with open('gpibcs.conf', 'w') as configfile:
                 self._parser.write(configfile)
