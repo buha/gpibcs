@@ -414,7 +414,8 @@ class GPIBCSWindow(QMainWindow, mainwindow.Ui_MainWindow):
         self._parser.set('gui', 'autoloaddirs', ', '.join(self._cfg['autoLoadDirs']))
 
         try:
-            with open('gpibcs.conf', 'w') as configfile:
+            filename = os.path.join(self._cfg['configDir'], 'gpibcs.conf')
+            with open(filename, 'w') as configfile:
                 self._parser.write(configfile)
         except Exception as e:
             quit_msg = "Some settings could not be saved, most likely due to insufficient permissions for gpibcs.conf."
@@ -434,7 +435,7 @@ class GPIBCSWindow(QMainWindow, mainwindow.Ui_MainWindow):
             self.rm = ResourceManager()
 
         i = cfg['gpibDevice']
-        if i != 'test':
+        if i != 'none':
             r = None
 
             # No device available
@@ -467,30 +468,35 @@ class BugReportDialog(QDialog, bugreport.Ui_bugReportDialog):
     def __init__(self, cfg):
         super(BugReportDialog, self).__init__()
         self.setupUi(self)
+        self._cfg = cfg
 
         self.bugFileLink.clicked.connect(self.bugFileLinkClicked)
         self.bugReportLink.clicked.connect(self.bugReportLinkClicked)
 
-        self.installationPath = os.path.dirname(os.path.realpath(cfg['logFileName']))
-        self.bugReportPath = os.path.join(self.installationPath, 'bugreport-' + time.strftime("%Y%m%d-%H%M%S") + '.zip')
+        cwd = os.getcwd()
+        os.chdir(self._cfg['configDir'])
 
-        z = zf.ZipFile(self.bugReportPath, 'w')
+        bugReportPath = os.path.join(self._cfg['configDir'], 'bugreport-' + time.strftime("%Y%m%d-%H%M%S") + '.zip')
+
+        z = zf.ZipFile(bugReportPath, 'w')
 
         # add the .conf file to the zip
         z.write('gpibcs.conf')
 
         # add the .log files to the zip
-        for f in glob.glob(os.path.basename(cfg['logFileName']) + "*"):
+        for f in glob.glob(os.path.basename(self._cfg['logFileName']) + "*"):
             z.write(f)
 
         # add the sequence files to the zip
-        for f in os.listdir('sequence'):
-            z.write('sequence/' + os.path.basename(f))
+        for f in glob.glob(os.path.basename("*.csv")):
+            z.write(f)
 
-        self.bugFileLabel.setText(self.bugReportPath)
+        self.bugFileLabel.setText(bugReportPath)
+
+        os.chdir(cwd)
 
     def bugFileLinkClicked(self):
-        webbrowser.open(self.installationPath)
+        webbrowser.open(self._cfg['configDir'])
 
     def bugReportLinkClicked(self):
         webbrowser.open('https://github.com/buha/gpibcs/issues/new')

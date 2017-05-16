@@ -62,7 +62,7 @@ Once you're happy with your sequence you can run it by clicking on `Run`. Note t
 
 * Section `gpib`
 `gpibdevice` - default device to use in the format GPIBx::y::INSTR where x is the dongle number (incremental from zero) and y is the primary address configured on the prober. Leave blank to ask for device selection each time.
-`gpibresponsetimeout` - GPIB bus timeout in seconds [default: 3]
+`gpibtimeout` - GPIB bus timeout in seconds [default: 3]
 
 * Section `gui`
 `lastuseddir` - last used directory when loading sequences. It is overwritten on exit.
