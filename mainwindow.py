@@ -276,7 +276,7 @@ class Ui_MainWindow(object):
         self.commandEdit.setPlaceholderText(_translate("MainWindow", "ibwrt data string"))
         self.queryButton.setText(_translate("MainWindow", "ibwrt → ibrd"))
         self.queryResponseButton.setText(_translate("MainWindow", "ibwrt → waitsrq"))
-        self.versionLabel.setText(_translate("MainWindow", "v0.2.3"))
+        self.versionLabel.setText(_translate("MainWindow", "v0.2.4rc1"))
         self.bugButton.setToolTip(_translate("MainWindow", "Found a bug? Report it."))
         self.infoButton.setToolTip(_translate("MainWindow", "Need help? Access the documentation."))
         self.writeButton.setText(_translate("MainWindow", "ibwrt"))
