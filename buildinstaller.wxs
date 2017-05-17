@@ -22,7 +22,6 @@
             <Directory Id="INSTALLDIR" Name="GPIBCS">
                <Component Id="ApplicationFiles" Guid="12345678-1234-1234-1234-222222222221">
                   <File Id="ApplicationExecutable" Source="dist\gpibcs.exe"/>
-                  <File Id="ApplicationFile1" Source="gpibcs.conf"/>
                </Component>
                <Directory Id="IconsFolder" Name="icons">
                   <Component Id="ComponentFiles" Guid="12345678-1234-1234-1234-222222222222">

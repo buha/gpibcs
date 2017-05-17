@@ -74,7 +74,8 @@ def confparse(filename, cfg):
         confparseExHandle(filename, e)
 
     try:
-        cfg['gpibDevice'] = parser.get('gpib', 'gpibDevice')
+        if cfg['gpibDevice'] != 'none':
+            cfg['gpibDevice'] = parser.get('gpib', 'gpibDevice')
     except Exception as e:
         confparseExHandle(filename, e)
 
@@ -106,7 +107,7 @@ def loggingsetup(cfg, logginghandler):
     # create a rotating logger to a file
     rootLogger = logging.getLogger('')
     rootLogger.setLevel(cfg['logFileLevel'])
-    fileHandler = RotatingFileHandler(cfg['logFileName'], maxBytes=cfg['logFileSize'], backupCount=5)
+    fileHandler = RotatingFileHandler(os.path.join(cfg['configDir'], cfg['logFileName']), maxBytes=cfg['logFileSize'], backupCount=5)
     fileHandler.setLevel(cfg['logFileLevel'])
     fileFormatter = logging.Formatter('%(asctime)s.%(msecs)03d %(levelname)-8s %(message)s', datefmt='%Y/%d/%m %H:%M:%S')
     fileHandler.setFormatter(fileFormatter)
@@ -124,7 +125,7 @@ def loggingsetup(cfg, logginghandler):
     rootLogger.addHandler(fileHandler)
     rootLogger.addHandler(consoleLogger)
 
-def main():
+def main(debug):
     # make sure we're displaying the correct version before importing ui code
     updateVersion()
     import ui
@@ -135,13 +136,23 @@ def main():
     cfg['logFileSize'] = 1024000
     cfg['logFileLevel'] = logging.DEBUG
     cfg['logConsoleLevel'] = logging.INFO
-    cfg['gpibDevice'] = 'GPIB0::5::INSTR'
-    cfg['gpibTimeout'] = 3
-    cfg['lastUsedDir'] = ''
-    cfg['autoLoadDirs'] = []
+    if debug:
+        cfg['gpibDevice'] = 'none'
+    else:
+        cfg['gpibDevice'] = ''
+    cfg['gpibTimeout'] = 1
+    cfg['installDir'] = os.path.dirname(os.path.realpath(__file__))
+    if (os.name == 'posix'):
+        cfg['configDir'] = os.path.expanduser('~/.config/gpibcs')
+        os.makedirs(cfg['configDir'], exist_ok=True)
+    else:
+        cfg['configDir'] = os.path.expanduser('~/gpibcs')
+        os.makedirs(cfg['configDir'], exist_ok=True)
+    cfg['lastUsedDir'] = cfg['configDir']
+    cfg['autoLoadDirs'] = [cfg['installDir'], cfg['configDir']]
 
     # find out which .conf file we are using
-    filename = os.path.basename(__file__).split('.')[0] + '.conf'
+    filename = os.path.join(cfg['configDir'], 'gpibcs.conf')
 
     # overwrite configuration with the contents of .conf file
     parser = confparse(filename, cfg)
@@ -158,4 +169,5 @@ def main():
     sys.exit(s)
 
 if __name__ == '__main__':
-    main()
+    debug = True if len(sys.argv) > 1 and sys.argv[1] == '--debug' else False
+    main(debug)
