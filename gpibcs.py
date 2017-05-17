@@ -38,7 +38,7 @@ def confparse(filename, cfg):
     try:
         parser.read(filename)
     except IOError:
-        sys.exit('Configuration file ' + filename + ' could not be found.')
+        pass
     except configparser.ParsingError as e:
         sys.exit('{0}, line {1}: file has no sections defined.'.format(e.args[0], e.args[1]))
     except configparser.DuplicateOptionError as e:
@@ -146,13 +146,20 @@ def main(debug):
         cfg['configDir'] = os.path.expanduser('~/.config/gpibcs')
         os.makedirs(cfg['configDir'], exist_ok=True)
     else:
-        cfg['configDir'] = os.path.expanduser('~/gpibcs')
+        cfg['configDir'] = os.path.expanduser('~\AppData\Local\gpibcs')
         os.makedirs(cfg['configDir'], exist_ok=True)
     cfg['lastUsedDir'] = cfg['configDir']
-    cfg['autoLoadDirs'] = [cfg['installDir'], cfg['configDir']]
+    sequenceDir = os.path.join(cfg['installDir'], 'sequence')
+    cfg['autoLoadDirs'] = [sequenceDir, cfg['configDir']]
 
     # find out which .conf file we are using
     filename = os.path.join(cfg['configDir'], 'gpibcs.conf')
+
+    # create config file template if it does not exist
+    if not os.path.isfile(filename):
+        with open(filename, 'w') as f:
+            f.write('[logging]\n\n[gpib]\n\n[gui]\n\n')
+        f.close()
 
     # overwrite configuration with the contents of .conf file
     parser = confparse(filename, cfg)
