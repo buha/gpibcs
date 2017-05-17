@@ -12,7 +12,6 @@ import queue
 from gpibcs import loggingsetup
 import deviceselector
 import bugreport
-from docbrowser import DocBrowserDialog
 import webbrowser
 import zipfile as zf
 import time
